@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { roleLabel } from "@/lib/utils";
 
 export default function CommandPage() {
-  const { dashboard, loading, error, actorId, setActorId, refresh } = useDemo();
+  const { dashboard, loading, error, actorId, setActorId, refresh, edition } = useDemo();
+  const pilot = edition === "pilot";
 
   if (loading && !dashboard) {
     return <p className="text-cue-slate">Loading tour close workspace…</p>;
@@ -25,12 +26,19 @@ export default function CommandPage() {
   }
   if (!dashboard) return null;
 
-  const metrics = [
-    { label: "Waiting on me", value: dashboard.metrics.waiting_on_me },
-    { label: "Open cues", value: dashboard.metrics.open_cues },
-    { label: "Awaiting approval", value: dashboard.metrics.awaiting_approval },
-    { label: "Unexplained variances", value: dashboard.metrics.unexplained_variances },
-  ];
+  const metrics = pilot
+    ? [
+        { label: "Waiting on me", value: dashboard.metrics.waiting_on_me },
+        { label: "Open cues", value: dashboard.metrics.open_cues },
+        { label: "Awaiting approval", value: dashboard.metrics.awaiting_approval },
+        { label: "Unexplained variances", value: dashboard.metrics.unexplained_variances },
+      ]
+    : [
+        { label: "Open cues", value: dashboard.metrics.open_cues },
+        { label: "Awaiting approval", value: dashboard.metrics.awaiting_approval },
+        { label: "Posted entries", value: dashboard.metrics.posted_entries },
+        { label: "Unexplained variances", value: dashboard.metrics.unexplained_variances },
+      ];
 
   return (
     <div className="space-y-8">
@@ -52,12 +60,13 @@ export default function CommandPage() {
             <span className="font-mono text-sm text-cue-navy">{dashboard.policy_version}</span>
           </p>
           <p className="mt-4 max-w-xl text-cue-slate">
-            Start from what is waiting on the active persona. Recommendations arrive with evidence.
-            Authority is checked on the server.
+            {pilot
+              ? "Start from what is waiting on the active persona. Recommendations arrive with evidence. Authority is checked on the server."
+              : "Recommendations arrive with evidence. Authority is checked on the server. Posting is exact, idempotent, and reversible only through a later correcting entry."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/app/cues?waiting=1">
-              <Button>Open my queue</Button>
+            <Link href={pilot ? "/app/cues?waiting=1" : "/app/cues"}>
+              <Button>{pilot ? "Open my queue" : "Open cue inbox"}</Button>
             </Link>
             <Link href="/app/reconciliation">
               <Button variant="secondary">Review variances</Button>
@@ -83,42 +92,45 @@ export default function CommandPage() {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-cue-navy">Waiting on me</h2>
-            <p className="mt-1 text-sm text-cue-slate">
-              Role-aware queue for the active demo persona. Empty means nothing needs you right now.
-            </p>
+      {pilot ? (
+        <section className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-2xl font-bold text-cue-navy">Waiting on me</h2>
+              <p className="mt-1 text-sm text-cue-slate">
+                Role-aware queue for the active demo persona. Empty means nothing needs you right
+                now.
+              </p>
+            </div>
+            <Link href="/app/cues?waiting=1" className="text-sm font-semibold text-cue-green">
+              View in inbox →
+            </Link>
           </div>
-          <Link href="/app/cues?waiting=1" className="text-sm font-semibold text-cue-green">
-            View in inbox →
-          </Link>
-        </div>
-        <div className="mt-4 divide-y divide-cue-line/70">
-          {dashboard.waiting_on_me.length === 0 ? (
-            <p className="py-4 text-sm text-cue-slate">No open items for this persona.</p>
-          ) : (
-            dashboard.waiting_on_me.map((item) => (
-              <Link
-                key={item.id}
-                href={`/app/cues/${item.id}/`}
-                className="flex flex-col gap-1 py-4 transition hover:bg-cue-mist/40 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <div className="font-semibold text-cue-navy">
-                    {item.vendor_name} · {item.invoice_number}
+          <div className="mt-4 divide-y divide-cue-line/70">
+            {dashboard.waiting_on_me.length === 0 ? (
+              <p className="py-4 text-sm text-cue-slate">No open items for this persona.</p>
+            ) : (
+              dashboard.waiting_on_me.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/app/cues/${item.id}/`}
+                  className="flex flex-col gap-1 py-4 transition hover:bg-cue-mist/40 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <div className="font-semibold text-cue-navy">
+                      {item.vendor_name} · {item.invoice_number}
+                    </div>
+                    <div className="text-sm text-cue-slate">
+                      {item.suggested_show_id ?? "unassigned"} · {item.status.replaceAll("_", " ")}
+                    </div>
                   </div>
-                  <div className="text-sm text-cue-slate">
-                    {item.suggested_show_id ?? "unassigned"} · {item.status.replaceAll("_", " ")}
-                  </div>
-                </div>
-                <div className="font-display text-xl font-bold text-cue-navy">${item.amount}</div>
-              </Link>
-            ))
-          )}
-        </div>
-      </section>
+                  <div className="font-display text-xl font-bold text-cue-navy">${item.amount}</div>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">

@@ -9,7 +9,8 @@ import { api, type Cue, type DuplicateCandidate } from "@/lib/api";
 import { money } from "@/lib/utils";
 
 export function CueDetailClient({ cueId }: { cueId: string }) {
-  const { refresh } = useDemo();
+  const { refresh, edition } = useDemo();
+  const pilot = edition === "pilot";
   const [cue, setCue] = useState<Cue | null>(null);
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [acknowledgeDuplicate, setAcknowledgeDuplicate] = useState(false);
@@ -23,14 +24,15 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
     try {
       const data = await api.cue(cueId);
       setCue(data);
-      setDuplicates(data.duplicate_candidates ?? []);
-      if (!(data.duplicate_candidates?.length)) {
+      const nextDuplicates = pilot ? (data.duplicate_candidates ?? []) : [];
+      setDuplicates(nextDuplicates);
+      if (!nextDuplicates.length) {
         setAcknowledgeDuplicate(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load cue");
     }
-  }, [cueId]);
+  }, [cueId, pilot]);
 
   useEffect(() => {
     void load();

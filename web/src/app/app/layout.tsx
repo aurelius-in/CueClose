@@ -4,9 +4,14 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DemoProvider, useDemo } from "@/components/demo/DemoProvider";
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const { actor, reset } = useDemo();
+  const { actor, edition, setEdition, reset } = useDemo();
   return (
-    <AppShell actorName={actor?.name} onReset={() => void reset()}>
+    <AppShell
+      actorName={actor?.name}
+      edition={edition}
+      onEditionChange={setEdition}
+      onReset={() => void reset()}
+    >
       {children}
     </AppShell>
   );
