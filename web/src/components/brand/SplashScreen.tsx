@@ -7,10 +7,15 @@ import { Button } from "@/components/ui/button";
 
 export function SplashScreen({ onEnter }: { onEnter: () => void }) {
   const [ready, setReady] = useState(false);
+  const [showFull, setShowFull] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 1400);
-    return () => window.clearTimeout(timer);
+    const settle = window.setTimeout(() => setShowFull(true), 2200);
+    const timer = window.setTimeout(() => setReady(true), 2400);
+    return () => {
+      window.clearTimeout(settle);
+      window.clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -34,12 +39,37 @@ export function SplashScreen({ onEnter }: { onEnter: () => void }) {
 
       <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
         <motion.div
-          initial={{ scale: 0.82, opacity: 0 }}
+          initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 120, damping: 14 }}
-          className="mb-8"
+          className="mb-8 flex h-[240px] w-full items-center justify-center"
         >
-          <Image src="/logo.svg" alt="CueClose" width={280} height={220} priority />
+          {!showFull ? (
+            <Image
+              src="/logo-anim.gif"
+              alt="CueClose"
+              width={200}
+              height={200}
+              unoptimized
+              priority
+              className="h-[180px] w-[180px] object-contain"
+            />
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+            >
+              <Image
+                src="/logo.png"
+                alt="CueClose"
+                width={320}
+                height={244}
+                priority
+                className="h-auto w-[min(320px,78vw)] object-contain"
+              />
+            </motion.div>
+          )}
         </motion.div>
 
         <motion.p

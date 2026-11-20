@@ -6,9 +6,9 @@ const config: Config = {
     extend: {
       colors: {
         cue: {
-          green: "#00A859",
-          "green-deep": "#008A49",
-          navy: "#002D5B",
+          green: "#01A25B",
+          "green-deep": "#018A4E",
+          navy: "#012F5D",
           mist: "#E7F3EC",
           paper: "#F4F8F6",
           ink: "#0B1C2C",
@@ -22,13 +22,13 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
-        panel: "0 18px 50px rgba(0, 45, 91, 0.08)",
+        panel: "0 18px 50px rgba(1, 47, 93, 0.08)",
       },
       backgroundImage: {
         "cue-radial":
-          "radial-gradient(1200px 600px at 10% -10%, rgba(0,168,89,0.18), transparent 55%), radial-gradient(900px 500px at 90% 0%, rgba(0,45,91,0.14), transparent 50%)",
+          "radial-gradient(1200px 600px at 10% -10%, rgba(1,162,91,0.18), transparent 55%), radial-gradient(900px 500px at 90% 0%, rgba(1,47,93,0.14), transparent 50%)",
         "cue-grid":
-          "linear-gradient(rgba(0,45,91,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,45,91,0.04) 1px, transparent 1px)",
+          "linear-gradient(rgba(1,47,93,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(1,47,93,0.04) 1px, transparent 1px)",
       },
       backgroundSize: {
         grid: "28px 28px",

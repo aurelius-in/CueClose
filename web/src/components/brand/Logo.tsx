@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 export function LogoMark({ className }: { className?: string }) {
   return (
     <Image
-      src="/logo-mark.svg"
+      src="/logo-mark.png"
       alt="CueClose"
-      width={48}
-      height={48}
-      className={cn("h-10 w-10", className)}
+      width={80}
+      height={74}
+      className={cn("h-10 w-auto", className)}
       priority
     />
   );
