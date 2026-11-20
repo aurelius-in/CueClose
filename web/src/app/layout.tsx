@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   title: "CueClose",
   description:
     "Synthetic touring-finance workspace for ambient cues, explicit approvals, exact ledgers, and explainable reconciliation.",
+  icons: {
+    icon: [{ url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
