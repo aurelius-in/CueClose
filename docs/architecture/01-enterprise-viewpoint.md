@@ -39,4 +39,4 @@ flowchart LR
 
 ## Current implementation
 
-Only a journal-draft validation invariant exists. It has no identity, tenant, persistence, approval, or posting authority.
+The runnable demo includes synthetic actors, cue review, server-side approval checks, posting with idempotency, reconciliation explanations, and an audit trail. Persistence is a seeded process-memory store, not a production database.

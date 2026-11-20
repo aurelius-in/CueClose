@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cue-green: #00a859;
+  --cue-navy: #002d5b;
+  --cue-paper: #f4f8f6;
+  --cue-ink: #0b1c2c;
+  --background: #f4f8f6;
+  --foreground: #0b1c2c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(1100px 520px at 8% -8%, rgba(0, 168, 89, 0.16), transparent 55%),
+    radial-gradient(900px 480px at 100% 0%, rgba(0, 45, 91, 0.12), transparent 48%),
+    linear-gradient(180deg, #f7fbf8 0%, #eef5f1 48%, #f4f8f6 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(0, 168, 89, 0.22);
+}
+
+.cue-shell {
+  background-image:
+    linear-gradient(rgba(0, 45, 91, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 45, 91, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.status-pill {
+  @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold tracking-wide;
+}

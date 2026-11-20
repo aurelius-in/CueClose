@@ -1,0 +1,20 @@
+{
+  "name": "CueClose brand tokens",
+  "colors": {
+    "cueGreen": "#00A859",
+    "closeNavy": "#002D5B",
+    "paper": "#F7FAF8",
+    "ink": "#0B1C2C",
+    "mist": "#E7F3EC",
+    "slate": "#4A5D73",
+    "alert": "#C2410C",
+    "white": "#FFFFFF"
+  },
+  "usage": {
+    "primaryAction": "cueGreen",
+    "typographyStrong": "closeNavy",
+    "surfaces": "paper / mist",
+    "success": "cueGreen",
+    "emphasis": "closeNavy"
+  }
+}

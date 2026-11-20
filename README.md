@@ -2,43 +2,116 @@
 
 **The tour keeps moving. The books keep up.**
 
-CueClose is a synthetic-data portfolio demonstration exploring explainable touring-finance workflows, explicit approvals, double-entry accounting, reconciliation, and audit evidence. It is an original portfolio project and is not affiliated with VectorOne.
+CueClose is a synthetic-data portfolio demonstration of explainable touring-finance workflows: ambient invoice cues, evidence-linked recommendations, explicit approvals, exact double-entry posting, reconciliation that explains variance, and an append-only audit trail.
 
-> Foundation milestone: an exact-decimal journal-draft validator and architecture documentation exist. The repository does not yet persist or post financial transactions.
+It is an original portfolio project and is not affiliated with VectorOne or any live operator.
 
-## Principles
+## Why this shape
 
-- A model may recommend; it never directly posts to a ledger.
-- Use Python `Decimal` and decimal-string API amounts.
-- Preserve source evidence and server-owned workflow state.
-- Prefer a modular monolith until an operational need proves otherwise.
-- Keep all demo data synthetic and all channel delivery simulated.
+| Principle | How it shows up |
+|---|---|
+| A model may recommend; it never posts | Recommendations are visible on cues; posting requires a server-checked human approval path |
+| Exact money | Python `Decimal` in domain code; API amounts are decimal strings |
+| Authority is explicit | Role, materiality, and confidence gates live in `api/app/domain/policy.py` |
+| Evidence over vibes | Every cue carries source excerpts; every decision writes audit events |
+| Demo-safe | Fictional Northline Arena Tour data; simulated channels only |
 
-## Repository map
+## Quick start
 
-```text
-api/app/domain/ledger.py  # exact decimal journal-draft invariants
-api/app/api/              # FastAPI schemas and routes
-api/tests/                # domain and API contract tests
-docs/architecture/        # RM-ODP viewpoints and traceability
-docs/decisions/           # architecture decision records
-IMPLEMENTATION_STATUS.md
+### One-process UI demo (recommended)
+
+The Next.js app embeds a same-contract demo API, so the branded workspace runs as a single Node process:
+
+```bash
+cd web
+npm install
+npm run build
+npm run start -- --port 3847
 ```
 
-## Run locally
+Open `http://127.0.0.1:3847`.
+
+Or:
+
+```bash
+chmod +x scripts/run.sh
+./scripts/run.sh
+```
+
+### Python reference service
+
+The FastAPI modular monolith remains the architecture reference with exact-decimal domain tests:
 
 ```bash
 cd api
-python -m venv .venv
-. .venv/bin/activate       # Windows: .venv\Scripts\Activate.ps1
-python -m pip install -e '.[dev]'
-uvicorn app.main:app --reload --port 8000
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+uvicorn app.main:app --host 127.0.0.1 --port 8847
 ```
 
-Open `http://localhost:8000/docs`. Current endpoints validate a draft; they do not persist or post it.
+Open `http://127.0.0.1:8847/docs`.
+
+### Split hot reload
 
 ```bash
-python -m pytest
+chmod +x scripts/dev.sh
+./scripts/dev.sh
+```
+
+- Web: `http://127.0.0.1:3847`
+- Python API docs: `http://127.0.0.1:8847/docs`
+
+### Tests
+
+```bash
+cd api
+source .venv/bin/activate
+pytest
 ruff check .
 ruff format --check .
 ```
+
+## Demo path (five minutes)
+
+1. Enter from the splash screen into **Command**.
+2. Keep actor as **Maya Chen** (tour controller).
+3. Open **Cue inbox** → `Northwind Rigging Co.` (`cue_001`).
+4. Read evidence and the recommendation, then **Approve** and **Post journal**.
+5. Switch actor to **Jordan Blake** and try approving a material cue: the API denies it.
+6. Visit **Ledger**, **Reconciliation**, and **Audit** to show posting, variance explanation, and trail.
+
+Reset anytime with **Reset demo** in the header.
+
+## Architecture
+
+```text
+web/        Branded Next.js workspace + embedded demo API routes
+api/        FastAPI modular monolith (architecture reference)
+  domain/   Ledger invariants, money, policy, models
+  application/  Cue review → approval → post → reconcile
+  infrastructure/  Seeded in-memory store (swap-ready)
+brand/      Logo, mark, color tokens
+docs/       RM-ODP viewpoints, ADRs, workflow diagrams
+scripts/    Local run helpers
+```
+
+Readable diagrams:
+
+- [`docs/diagrams/architecture.md`](docs/diagrams/architecture.md)
+- [`docs/diagrams/workflow.md`](docs/diagrams/workflow.md)
+- [`docs/architecture/`](docs/architecture/)
+
+## Brand
+
+| Token | Value |
+|---|---|
+| Cue green | `#00A859` |
+| Close navy | `#002D5B` |
+| Paper | `#F4F8F6` |
+
+Assets live in `brand/` and are copied into `web/public/` for the UI.
+
+## Status
+
+See [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md). The foundation ledger validator remains; the runnable demo now covers inbox, approvals, posting with idempotency, reconciliation explanations, audit, and UI.
