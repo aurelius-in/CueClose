@@ -100,9 +100,15 @@ type Store = {
   idempotency: Record<string, string>;
 };
 
+export const DEFAULT_ACTOR_ID = "actor_maya";
+
+type ViewerSession = { actorId: string };
+
 declare global {
   // eslint-disable-next-line no-var
   var __cuecloseStore: Store | undefined;
+  // eslint-disable-next-line no-var
+  var __cuecloseSessions: Record<string, ViewerSession> | undefined;
 }
 
 function money(n: number) {
@@ -403,6 +409,29 @@ export function getStore(): Store {
 export function resetStore() {
   globalThis.__cuecloseStore = seed();
   return globalThis.__cuecloseStore;
+}
+
+function sessions(): Record<string, ViewerSession> {
+  if (!globalThis.__cuecloseSessions) {
+    globalThis.__cuecloseSessions = {};
+  }
+  return globalThis.__cuecloseSessions;
+}
+
+/** Resolve the demo persona bound to an authenticated viewer. Never trust the browser for this. */
+export function getSessionActor(viewerSub: string): Actor {
+  const store = getStore();
+  const session = sessions()[viewerSub];
+  const actorId = session?.actorId ?? DEFAULT_ACTOR_ID;
+  return store.actors.find((actor) => actor.id === actorId) ?? store.actors[0];
+}
+
+export function setSessionActor(viewerSub: string, actorId: string): Actor | null {
+  const store = getStore();
+  const actor = store.actors.find((item) => item.id === actorId);
+  if (!actor) return null;
+  sessions()[viewerSub] = { actorId: actor.id };
+  return actor;
 }
 
 export function audit(

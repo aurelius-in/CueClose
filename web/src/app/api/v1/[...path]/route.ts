@@ -1,43 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireIdentity } from "../../../../../cursor/identity";
 import {
   audit,
   canDecide,
   dashboard,
   formatMoney,
+  getSessionActor,
   getStore,
   resetStore,
+  setSessionActor,
   type Actor,
 } from "@/lib/server/store";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
+const privateHeaders = { "cache-control": "private, no-store" };
+
 function json(data: unknown, status = 200) {
-  return NextResponse.json(data, { status });
+  return NextResponse.json(data, { status, headers: privateHeaders });
 }
 
-function actorOf(store: ReturnType<typeof getStore>, actorId: string): Actor | null {
-  return store.actors.find((a) => a.id === actorId) ?? null;
+async function requireViewer(request: NextRequest) {
+  return requireIdentity(request);
 }
 
-export async function GET(_request: NextRequest, ctx: Ctx) {
+function sessionActorFor(viewerSub: string): Actor {
+  return getSessionActor(viewerSub);
+}
+
+export async function GET(request: NextRequest, ctx: Ctx) {
   const path = (await ctx.params).path.join("/");
   const store = getStore();
 
+  // Liveness only: no tour data.
   if (path === "health") {
-    return json({
+    return NextResponse.json({
       status: "ok",
       mode: "synthetic_tour_demo",
       persistence: "process_memory_seeded",
       tour_id: store.tour.id,
     });
   }
-  if (path === "demo/dashboard") return json(dashboard(store));
+
+  const identity = await requireViewer(request);
+  if (identity instanceof Response) return identity;
+
+  if (path === "demo/dashboard") {
+    const actor = sessionActorFor(identity.sub);
+    return json({
+      ...dashboard(store),
+      active_actor_id: actor.id,
+      viewer: { name: identity.name, email: identity.email },
+    });
+  }
+  if (path === "demo/session") {
+    const actor = sessionActorFor(identity.sub);
+    return json({
+      actor,
+      viewer: { name: identity.name, email: identity.email },
+    });
+  }
   if (path === "cues") {
     return json(
       Object.values(store.cues).sort((a, b) => b.received_at.localeCompare(a.received_at)),
     );
   }
-  if (path.startsWith("cues/")) {
+  if (path.startsWith("cues/") && path.split("/").length === 2) {
     const id = path.split("/")[1];
     const cue = store.cues[id];
     if (!cue) return json({ detail: { code: "not_found", message: "Unknown cue" } }, 404);
@@ -54,24 +82,50 @@ export async function GET(_request: NextRequest, ctx: Ctx) {
 }
 
 export async function POST(request: NextRequest, ctx: Ctx) {
+  const identity = await requireViewer(request);
+  if (identity instanceof Response) return identity;
+
   const path = (await ctx.params).path.join("/");
   const store = getStore();
   const body = await request.json().catch(() => ({}));
+  const actor = sessionActorFor(identity.sub);
 
   if (path === "demo/reset") {
     resetStore();
+    audit(getStore(), {
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: "demo.reset",
+      entity_type: "tour",
+      entity_id: getStore().tour.id,
+      summary: `${actor.name} reset the synthetic demo dataset`,
+      details: { viewer_sub: identity.sub },
+    });
     return json({ status: "reset", tour_id: getStore().tour.id, cue_count: 5 });
+  }
+
+  if (path === "demo/actor") {
+    const next = setSessionActor(identity.sub, String(body.actor_id ?? ""));
+    if (!next) {
+      return json({ detail: { code: "invalid_input", message: "Unknown demo actor" } }, 422);
+    }
+    return json({ actor: next });
   }
 
   if (path.match(/^cues\/[^/]+\/review$/)) {
     const id = path.split("/")[1];
     const cue = store.cues[id];
-    const actor = actorOf(store, body.actor_id);
-    if (!cue || !actor) return json({ detail: { code: "not_found", message: "Unknown actor or cue" } }, 404);
+    if (!cue) return json({ detail: { code: "not_found", message: "Unknown cue" } }, 404);
     if (!["new", "held"].includes(cue.status)) {
-      return json({ detail: { code: "invalid_state", message: `Cannot review from ${cue.status}` } }, 409);
+      return json(
+        { detail: { code: "invalid_state", message: `Cannot review from ${cue.status}` } },
+        409,
+      );
     }
-    cue.status = cue.recommendation && cue.recommendation.confidence >= 0.75 ? "awaiting_approval" : "in_review";
+    cue.status =
+      cue.recommendation && cue.recommendation.confidence >= 0.75
+        ? "awaiting_approval"
+        : "in_review";
     audit(store, {
       actor_id: actor.id,
       actor_name: actor.name,
@@ -87,8 +141,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   if (path.match(/^cues\/[^/]+\/approvals$/)) {
     const id = path.split("/")[1];
     const cue = store.cues[id];
-    const actor = actorOf(store, body.actor_id);
-    if (!cue || !actor) return json({ detail: { code: "not_found", message: "Unknown actor or cue" } }, 404);
+    if (!cue) return json({ detail: { code: "not_found", message: "Unknown cue" } }, 404);
     if (!body.reason?.trim()) {
       return json({ detail: { code: "invalid_input", message: "A reason is required" } }, 422);
     }
@@ -131,12 +184,15 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   if (path.match(/^cues\/[^/]+\/post$/)) {
     const id = path.split("/")[1];
     const cue = store.cues[id];
-    const actor = actorOf(store, body.actor_id);
-    if (!cue || !actor) return json({ detail: { code: "not_found", message: "Unknown actor or cue" } }, 404);
+    if (!cue) return json({ detail: { code: "not_found", message: "Unknown cue" } }, 404);
     if (!body.idempotency_key?.trim()) {
-      return json({ detail: { code: "invalid_input", message: "idempotency_key is required" } }, 422);
+      return json(
+        { detail: { code: "invalid_input", message: "idempotency_key is required" } },
+        422,
+      );
     }
-    const existing = store.idempotency[body.idempotency_key];
+    const scopedKey = `${identity.sub}:${body.idempotency_key}`;
+    const existing = store.idempotency[scopedKey];
     if (existing && store.journals[existing]) {
       return json({ idempotent_replay: true, journal: store.journals[existing], cue });
     }
@@ -158,7 +214,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       currency: cue.currency,
       posted_at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
       posted_by: actor.id,
-      idempotency_key: body.idempotency_key,
+      idempotency_key: scopedKey,
       memo: `Post ${cue.id} · ${cue.vendor_name}`,
       debit_total: amount,
       credit_total: amount,
@@ -180,7 +236,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       ],
     };
     store.journals[journalId] = journal;
-    store.idempotency[body.idempotency_key] = journalId;
+    store.idempotency[scopedKey] = journalId;
     cue.status = "posted";
     cue.posted_journal_id = journalId;
     const showId = cue.recommendation.show_id;
@@ -188,7 +244,9 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       for (const item of Object.values(store.reconciliations)) {
         if (item.show_id === showId && item.account_code === cue.recommendation.account_code) {
           item.ledger_amount = formatMoney(String(Number(item.ledger_amount) + Number(amount)));
-          item.variance = formatMoney(String(Number(item.ledger_amount) - Number(item.legacy_amount)));
+          item.variance = formatMoney(
+            String(Number(item.ledger_amount) - Number(item.legacy_amount)),
+          );
           if (item.variance === "0.00") {
             item.status = "matched";
             item.explanation =
@@ -212,9 +270,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   if (path.match(/^reconciliation\/[^/]+\/explain$/)) {
     const id = path.split("/")[1];
     const item = store.reconciliations[id];
-    const actor = actorOf(store, body.actor_id);
-    if (!item || !actor) {
-      return json({ detail: { code: "not_found", message: "Unknown actor or reconciliation item" } }, 404);
+    if (!item) {
+      return json(
+        { detail: { code: "not_found", message: "Unknown reconciliation item" } },
+        404,
+      );
     }
     if (!body.explanation?.trim()) {
       return json(

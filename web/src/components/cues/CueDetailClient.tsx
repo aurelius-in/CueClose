@@ -9,7 +9,7 @@ import { api, type Cue } from "@/lib/api";
 import { money } from "@/lib/utils";
 
 export function CueDetailClient({ cueId }: { cueId: string }) {
-  const { actorId, refresh } = useDemo();
+  const { refresh } = useDemo();
   const [cue, setCue] = useState<Cue | null>(null);
   const [reason, setReason] = useState("Evidence and show tagging are consistent with policy.");
   const [message, setMessage] = useState<string | null>(null);
@@ -158,7 +158,7 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             }
             onClick={() =>
               void run(async () => {
-                await api.review(cue.id, actorId);
+                await api.review(cue.id);
                 setMessage("Cue moved into review / awaiting approval.");
               })
             }
@@ -171,7 +171,6 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             onClick={() =>
               void run(async () => {
                 await api.approve(cue.id, {
-                  actor_id: actorId,
                   decision: "approve",
                   reason,
                 });
@@ -188,7 +187,6 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             onClick={() =>
               void run(async () => {
                 await api.approve(cue.id, {
-                  actor_id: actorId,
                   decision: "hold",
                   reason,
                 });
@@ -208,7 +206,6 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             onClick={() =>
               void run(async () => {
                 const result = await api.post(cue.id, {
-                  actor_id: actorId,
                   idempotency_key: `ui-post-${cue.id}-${Date.now()}`,
                 });
                 setMessage(
