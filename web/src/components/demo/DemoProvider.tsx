@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useTransition,
 } from "react";
 import { api, type Actor, type Dashboard } from "@/lib/api";
 
@@ -27,7 +28,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actorId, setActorId] = useState("actor_maya");
+  const [actorId, setActorIdState] = useState("actor_maya");
+  const [, startTransition] = useTransition();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -35,6 +37,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await api.dashboard();
       setDashboard(data);
+      if (data.active_actor_id) {
+        setActorIdState(data.active_actor_id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard");
     } finally {
@@ -46,6 +51,25 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     await api.reset();
     await refresh();
   }, [refresh]);
+
+  const setActorId = useCallback(
+    (id: string) => {
+      setActorIdState(id);
+      startTransition(() => {
+        void (async () => {
+          try {
+            const result = await api.setActor(id);
+            setActorIdState(result.actor.id);
+            await refresh();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to switch actor");
+            await refresh();
+          }
+        })();
+      });
+    },
+    [refresh],
+  );
 
   useEffect(() => {
     void refresh();
@@ -67,7 +91,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       refresh,
       reset,
     }),
-    [dashboard, loading, error, actorId, actor, refresh, reset],
+    [dashboard, loading, error, actorId, actor, setActorId, refresh, reset],
   );
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;

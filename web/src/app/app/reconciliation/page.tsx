@@ -8,7 +8,7 @@ import { api, type ReconItem } from "@/lib/api";
 import { money } from "@/lib/utils";
 
 export default function ReconciliationPage() {
-  const { actorId, refresh } = useDemo();
+  const { refresh } = useDemo();
   const [items, setItems] = useState<ReconItem[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +77,6 @@ export default function ReconciliationPage() {
                       setError(null);
                       try {
                         await api.explain(item.id, {
-                          actor_id: actorId,
                           explanation: drafts[item.id] ?? "",
                         });
                         setMessage(`Explained ${item.id}`);

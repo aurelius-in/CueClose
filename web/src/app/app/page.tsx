@@ -106,8 +106,8 @@ export default function CommandPage() {
         <div className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">
           <h2 className="font-display text-2xl font-bold text-cue-navy">Acting role</h2>
           <p className="mt-2 text-sm text-cue-slate">
-            Switch persona to demonstrate delegated authority. Tour managers can contextualize but
-            cannot post.
+            Switch the server-bound demo persona for this signed-in session. Tour managers can
+            contextualize but cannot post. Locally the viewer is simulated.
           </p>
           <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.16em] text-cue-slate">
             Actor

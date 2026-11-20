@@ -44,6 +44,8 @@ export type Dashboard = {
   shows: Show[];
   actors: Actor[];
   policy_version: string;
+  active_actor_id?: string;
+  viewer?: { name: string; email: string };
 };
 
 export type Evidence = {
@@ -127,26 +129,31 @@ export type AuditEvent = {
 export const api = {
   dashboard: () => request<Dashboard>("/demo/dashboard"),
   reset: () => request<{ status: string }>("/demo/reset", { method: "POST" }),
-  cues: () => request<Cue[]>("/cues"),
-  cue: (id: string) => request<Cue>(`/cues/${id}`),
-  review: (id: string, actor_id: string) =>
-    request<Cue>(`/cues/${id}/review`, {
+  setActor: (actor_id: string) =>
+    request<{ actor: Actor }>("/demo/actor", {
       method: "POST",
       body: JSON.stringify({ actor_id }),
     }),
-  approve: (id: string, payload: { actor_id: string; decision: string; reason: string }) =>
+  cues: () => request<Cue[]>("/cues"),
+  cue: (id: string) => request<Cue>(`/cues/${id}`),
+  review: (id: string) =>
+    request<Cue>(`/cues/${id}/review`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
+  approve: (id: string, payload: { decision: string; reason: string }) =>
     request<{ cue: Cue }>(`/cues/${id}/approvals`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  post: (id: string, payload: { actor_id: string; idempotency_key: string }) =>
+  post: (id: string, payload: { idempotency_key: string }) =>
     request<{ cue: Cue; journal: Journal; idempotent_replay: boolean }>(`/cues/${id}/post`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   journals: () => request<Journal[]>("/ledger/journals"),
   reconciliation: () => request<ReconItem[]>("/reconciliation"),
-  explain: (id: string, payload: { actor_id: string; explanation: string }) =>
+  explain: (id: string, payload: { explanation: string }) =>
     request<ReconItem>(`/reconciliation/${id}/explain`, {
       method: "POST",
       body: JSON.stringify(payload),
