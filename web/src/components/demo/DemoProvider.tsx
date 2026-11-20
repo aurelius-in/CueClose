@@ -41,7 +41,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         setActorIdState(data.active_actor_id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load dashboard");
+      const text = err instanceof Error ? err.message : "Failed to load dashboard";
+      setError(text.includes("fetch") ? "API unavailable" : text);
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error(
+        "Sign-in required. Set the app to Private or Team in Publish Settings, then reopen it while signed into Cursor.",
+      );
+    }
     const message =
       body?.detail?.message ?? body?.detail ?? `Request failed (${response.status})`;
     throw new Error(typeof message === "string" ? message : JSON.stringify(message));

@@ -101,6 +101,7 @@ type Store = {
 };
 
 export const DEFAULT_ACTOR_ID = "actor_maya";
+export const DEFAULT_GUEST_ACTOR_ID = "actor_jordan";
 
 type ViewerSession = { actorId: string };
 
@@ -418,11 +419,12 @@ function sessions(): Record<string, ViewerSession> {
   return globalThis.__cuecloseSessions;
 }
 
-/** Resolve the demo persona bound to an authenticated viewer. Never trust the browser for this. */
+/** Resolve the demo persona bound to a viewer session. Never trust the browser for this. */
 export function getSessionActor(viewerSub: string): Actor {
   const store = getStore();
   const session = sessions()[viewerSub];
-  const actorId = session?.actorId ?? DEFAULT_ACTOR_ID;
+  const fallback = viewerSub.startsWith("anon:") ? DEFAULT_GUEST_ACTOR_ID : DEFAULT_ACTOR_ID;
+  const actorId = session?.actorId ?? fallback;
   return store.actors.find((actor) => actor.id === actorId) ?? store.actors[0];
 }
 

@@ -75,13 +75,15 @@ ruff format --check .
 ## Demo path (five minutes)
 
 1. Enter from the splash screen into **Command**.
-2. Keep actor as **Maya Chen** (tour controller).
+2. On a Public publish, you start as a guest (Jordan Blake). Private or Team apps use your Cursor sign-in and can select **Maya Chen** (tour controller).
 3. Open **Cue inbox** → `Northwind Rigging Co.` (`cue_001`).
-4. Read evidence and the recommendation, then **Approve** and **Post journal**.
+4. Read evidence and the recommendation, then **Approve** and **Post journal** (as Maya).
 5. Switch actor to **Jordan Blake** and try approving a material cue: the API denies it.
 6. Visit **Ledger**, **Reconciliation**, and **Audit** to show posting, variance explanation, and trail.
 
-Reset anytime with **Reset demo** in the header.
+Reset anytime with **Reset demo** in the header (tour controller only).
+
+Personas are bound server-side to the signed-in Cursor viewer or an HttpOnly guest cookie. The browser never sends an actor id to authorize a decision.
 
 ## Architecture
 
