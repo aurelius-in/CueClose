@@ -10,6 +10,7 @@ import {
   useTransition,
 } from "react";
 import { api, type Actor, type Dashboard } from "@/lib/api";
+import { EDITION_COOKIE, editionLabel, parseEdition, type DemoEdition } from "@/lib/edition";
 
 type DemoContextValue = {
   dashboard: Dashboard | null;
@@ -17,6 +18,9 @@ type DemoContextValue = {
   error: string | null;
   actorId: string;
   actor: Actor | null;
+  edition: DemoEdition;
+  editionLabel: string;
+  setEdition: (edition: DemoEdition) => void;
   setActorId: (id: string) => void;
   refresh: () => Promise<void>;
   reset: () => Promise<void>;
@@ -24,12 +28,27 @@ type DemoContextValue = {
 
 const DemoContext = createContext<DemoContextValue | null>(null);
 
+function readEditionCookie(): DemoEdition {
+  if (typeof document === "undefined") return "pilot";
+  const match = document.cookie.match(new RegExp(`(?:^|; )${EDITION_COOKIE}=([^;]*)`));
+  return parseEdition(match?.[1]);
+}
+
+function writeEditionCookie(edition: DemoEdition) {
+  document.cookie = `${EDITION_COOKIE}=${edition}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+}
+
 export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actorId, setActorIdState] = useState("actor_maya");
+  const [edition, setEditionState] = useState<DemoEdition>("pilot");
   const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    setEditionState(readEditionCookie());
+  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -72,6 +91,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const setEdition = useCallback((next: DemoEdition) => {
+    writeEditionCookie(next);
+    setEditionState(next);
+  }, []);
+
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -88,11 +112,14 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       error,
       actorId,
       actor,
+      edition,
+      editionLabel: editionLabel(edition),
+      setEdition,
       setActorId,
       refresh,
       reset,
     }),
-    [dashboard, loading, error, actorId, actor, setActorId, refresh, reset],
+    [dashboard, loading, error, actorId, actor, edition, setEdition, setActorId, refresh, reset],
   );
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;

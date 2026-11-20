@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { useDemo } from "@/components/demo/DemoProvider";
 import { api, type Cue, type Show } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ import { money } from "@/lib/utils";
 
 function CuesPageInner() {
   const searchParams = useSearchParams();
+  const { edition } = useDemo();
+  const pilot = edition === "pilot";
   const [cues, setCues] = useState<Cue[]>([]);
   const [shows, setShows] = useState<Show[]>([]);
   const [showFilter, setShowFilter] = useState<string>(searchParams.get("show") ?? "all");
@@ -35,11 +38,12 @@ function CuesPageInner() {
 
   const filtered = useMemo(() => {
     return cues.filter((cue) => {
-      if (showFilter !== "all" && cue.suggested_show_id !== showFilter) return false;
-      if (waitingOnly && !waitingIds.has(cue.id)) return false;
+      if (pilot && showFilter !== "all" && cue.suggested_show_id !== showFilter) return false;
+      if (pilot && waitingOnly && !waitingIds.has(cue.id)) return false;
+      if (!pilot && cue.id === "cue_006") return false;
       return true;
     });
-  }, [cues, showFilter, waitingOnly, waitingIds]);
+  }, [cues, showFilter, waitingOnly, waitingIds, pilot]);
 
   if (loading) return <p className="text-cue-slate">Loading ambient cues…</p>;
   if (error) {
@@ -56,39 +60,42 @@ function CuesPageInner() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cue-green">Inbox</p>
         <h1 className="mt-2 font-display text-4xl font-bold text-cue-navy">Ambient cues</h1>
         <p className="mt-2 max-w-2xl text-cue-slate">
-          Filter by show for the city you own. Waiting-on-me mirrors the active persona&apos;s
-          queue from Command.
+          {pilot
+            ? "Filter by show for the city you own. Waiting-on-me mirrors the active persona's queue from Command."
+            : "Each cue preserves source evidence and a model recommendation. Nothing posts until a server-checked approval path succeeds."}
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-cue-line/80 bg-white/90 p-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-cue-slate">
-            Show / venue
+      {pilot ? (
+        <div className="flex flex-col gap-3 rounded-2xl border border-cue-line/80 bg-white/90 p-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-cue-slate">
+              Show / venue
+            </label>
+            <select
+              className="mt-2 w-full rounded-xl border border-cue-line bg-cue-paper px-3 py-3 text-sm font-semibold text-cue-navy"
+              value={showFilter}
+              onChange={(event) => setShowFilter(event.target.value)}
+            >
+              <option value="all">All shows</option>
+              {shows.map((show) => (
+                <option key={show.id} value={show.id}>
+                  {show.name} · {show.venue}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center gap-2 rounded-xl border border-cue-line bg-cue-paper px-4 py-3 text-sm font-semibold text-cue-navy">
+            <input
+              type="checkbox"
+              checked={waitingOnly}
+              onChange={(event) => setWaitingOnly(event.target.checked)}
+              className="h-4 w-4 accent-[var(--cue-green)]"
+            />
+            Waiting on me ({waitingIds.size})
           </label>
-          <select
-            className="mt-2 w-full rounded-xl border border-cue-line bg-cue-paper px-3 py-3 text-sm font-semibold text-cue-navy"
-            value={showFilter}
-            onChange={(event) => setShowFilter(event.target.value)}
-          >
-            <option value="all">All shows</option>
-            {shows.map((show) => (
-              <option key={show.id} value={show.id}>
-                {show.name} · {show.venue}
-              </option>
-            ))}
-          </select>
         </div>
-        <label className="flex items-center gap-2 rounded-xl border border-cue-line bg-cue-paper px-4 py-3 text-sm font-semibold text-cue-navy">
-          <input
-            type="checkbox"
-            checked={waitingOnly}
-            onChange={(event) => setWaitingOnly(event.target.checked)}
-            className="h-4 w-4 accent-[var(--cue-green)]"
-          />
-          Waiting on me ({waitingIds.size})
-        </label>
-      </div>
+      ) : null}
 
       <div className="space-y-3">
         {filtered.length === 0 ? (
@@ -105,7 +112,7 @@ function CuesPageInner() {
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-semibold text-cue-navy">{cue.vendor_name}</h2>
                 <StatusBadge status={cue.status} />
-                {waitingIds.has(cue.id) ? (
+                {pilot && waitingIds.has(cue.id) ? (
                   <span className="rounded-md bg-cue-mist px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-cue-navy">
                     Waiting on me
                   </span>

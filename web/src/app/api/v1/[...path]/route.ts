@@ -13,6 +13,7 @@ import {
   setSessionActor,
 } from "@/lib/server/store";
 import { resolveViewer, withViewerCookie } from "@/lib/server/viewer";
+import { EDITION_COOKIE, EDITION_HEADER, parseEdition, type DemoEdition } from "@/lib/edition";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
@@ -24,6 +25,12 @@ function json(data: unknown, status = 200) {
 
 function attach(request: NextRequest, response: NextResponse, setCookie?: string) {
   return withViewerCookie(response, setCookie, request.url.startsWith("https:"));
+}
+
+function requestEdition(request: NextRequest): DemoEdition {
+  return parseEdition(
+    request.headers.get(EDITION_HEADER) ?? request.cookies.get(EDITION_COOKIE)?.value,
+  );
 }
 
 export async function GET(request: NextRequest, ctx: Ctx) {
@@ -69,11 +76,13 @@ export async function GET(request: NextRequest, ctx: Ctx) {
     const id = path.split("/")[1];
     const cue = getCue(store, id);
     if (!cue) return attach(request, json({ detail: { code: "not_found", message: "Unknown cue" } }, 404), setCookie);
+    const edition = requestEdition(request);
     return attach(
       request,
       json({
         ...cue,
-        duplicate_candidates: findDuplicateCandidates(store, cue),
+        duplicate_candidates:
+          edition === "pilot" ? findDuplicateCandidates(store, cue) : [],
       }),
       setCookie,
     );
@@ -210,7 +219,9 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       if (!verdict.allowed) {
         return attach(request, json({ detail: { code: verdict.code, message: verdict.message } }, 403), setCookie);
       }
-      const duplicates = findDuplicateCandidates(store, cue);
+      const edition = requestEdition(request);
+      const duplicates =
+        edition === "pilot" ? findDuplicateCandidates(store, cue) : [];
       if (duplicates.length > 0 && body.acknowledge_duplicate !== true) {
         return attach(
           request,
@@ -234,7 +245,8 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       cue.status = "held";
       cue.hold_reason = body.reason.trim();
     }
-    const duplicates = findDuplicateCandidates(store, cue);
+    const duplicates =
+      requestEdition(request) === "pilot" ? findDuplicateCandidates(store, cue) : [];
     audit(store, {
       actor_id: actor.id,
       actor_name: actor.name,

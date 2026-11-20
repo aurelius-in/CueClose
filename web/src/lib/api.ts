@@ -1,10 +1,19 @@
+import { EDITION_COOKIE, EDITION_HEADER, parseEdition } from "@/lib/edition";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "/api/v1";
+
+function clientEditionHeader(): Record<string, string> {
+  if (typeof document === "undefined") return {};
+  const match = document.cookie.match(new RegExp(`(?:^|; )${EDITION_COOKIE}=([^;]*)`));
+  return { [EDITION_HEADER]: parseEdition(match?.[1]) };
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...clientEditionHeader(),
       ...(init?.headers ?? {}),
     },
     cache: "no-store",
