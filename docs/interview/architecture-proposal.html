@@ -51,32 +51,32 @@
       gap: 14px;
       align-items: center;
     }
-    .mark {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      border: 6px solid var(--cue-green);
-      box-shadow: inset 0 0 0 6px var(--cue-navy);
-      position: relative;
+    .brand-lockup {
+      display: block;
+      width: auto;
+      height: 92px;
     }
-    .mark::after {
-      content: "";
-      position: absolute;
-      width: 18px;
-      height: 10px;
-      border-left: 4px solid var(--cue-green);
-      border-bottom: 4px solid var(--cue-green);
-      transform: rotate(-45deg);
-      left: 16px;
-      top: 14px;
+    .brand-mark {
+      display: block;
+      width: auto;
+      height: 42px;
     }
-    .wordmark span:first-child { color: var(--cue-green); }
-    .wordmark span:last-child { color: var(--cue-navy); }
-    .wordmark {
-      font-family: Syne, sans-serif;
-      font-weight: 800;
-      font-size: 28px;
-      line-height: 1;
+    .mast-compact {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--cue-navy);
+      margin-bottom: 18px;
+    }
+    .mast-compact .doc-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--slate);
+      text-align: right;
     }
     .client-chip {
       background: var(--northline-sand);
@@ -237,10 +237,13 @@
   <section class="page">
     <div class="mast">
       <div class="brand-lock">
-        <div class="mark" aria-hidden="true"></div>
         <div>
-          <div class="wordmark"><span>Cue</span><span>Close</span></div>
-          <div class="muted" style="margin-top:6px;font-size:12px;">The tour keeps moving. The books keep up.</div>
+          <img
+            class="brand-lockup"
+            src="./assets/cc-logo-name-transparent.png"
+            alt="CueClose"
+          />
+          <div class="muted" style="margin-top:8px;font-size:12px;">The tour keeps moving. The books keep up.</div>
         </div>
       </div>
       <div class="client-chip">
@@ -293,7 +296,12 @@
 
   <!-- PAGE 2 BEFORE / AFTER -->
   <section class="page">
-    <p class="eyebrow">Visual design</p>
+        <div class="mast-compact">
+      <img class="brand-mark" src="./assets/cc-logo-transparent.png" alt="CueClose" />
+      <div class="doc-label">CueClose × Northline · Architecture proposal</div>
+    </div>
+
+<p class="eyebrow">Visual design</p>
     <h2>Before / after Command</h2>
     <p class="lede">
       Baseline Command is tour-aware but scavenger-hunt oriented. The pilot redesign makes “what needs
@@ -333,7 +341,12 @@
 
   <!-- PAGE 3 SYSTEM CONTEXT -->
   <section class="page">
-    <p class="eyebrow">System context</p>
+        <div class="mast-compact">
+      <img class="brand-mark" src="./assets/cc-logo-transparent.png" alt="CueClose" />
+      <div class="doc-label">CueClose × Northline · Architecture proposal</div>
+    </div>
+
+<p class="eyebrow">System context</p>
     <h2>Where CueClose sits during parallel run</h2>
     <p class="lede">
       CueClose does not replace NetSuite in phase one. It hydrates from operational inputs, runs the
@@ -393,7 +406,12 @@
 
   <!-- PAGE 4 WORKFLOW -->
   <section class="page">
-    <p class="eyebrow">Workflow</p>
+        <div class="mast-compact">
+      <img class="brand-mark" src="./assets/cc-logo-transparent.png" alt="CueClose" />
+      <div class="doc-label">CueClose × Northline · Architecture proposal</div>
+    </div>
+
+<p class="eyebrow">Workflow</p>
     <h2>Golden path with Northline extensions</h2>
 
     <div class="diagram">
@@ -476,7 +494,12 @@
 
   <!-- PAGE 5 MODULE BOUNDARIES -->
   <section class="page">
-    <p class="eyebrow">Computational view</p>
+        <div class="mast-compact">
+      <img class="brand-mark" src="./assets/cc-logo-transparent.png" alt="CueClose" />
+      <div class="doc-label">CueClose × Northline · Architecture proposal</div>
+    </div>
+
+<p class="eyebrow">Computational view</p>
     <h2>Module boundaries (modular monolith)</h2>
     <p class="lede">
       One deployable web app for the demo. Clear ownership so ambient work cannot bypass ledger rules.
@@ -574,7 +597,12 @@
 
   <!-- PAGE 6 ROADMAP + COMPARISON -->
   <section class="page">
-    <p class="eyebrow">Delivery plan</p>
+        <div class="mast-compact">
+      <img class="brand-mark" src="./assets/cc-logo-transparent.png" alt="CueClose" />
+      <div class="doc-label">CueClose × Northline · Architecture proposal</div>
+    </div>
+
+<p class="eyebrow">Delivery plan</p>
     <h2>What we show side-by-side, and why</h2>
     <p class="lede">
       The demo ships two editions in one binary. That mirrors a normal design session: keep the known
