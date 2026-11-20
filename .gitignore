@@ -12,3 +12,7 @@ venv/
 .DS_Store
 node_modules/
 .next/
+web/out/
+dist/
+*.log
+.turbo/

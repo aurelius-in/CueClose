@@ -4,22 +4,24 @@ Last updated: 2026-11-19
 
 | Capability | Status | Evidence |
 |---|---|---|
-| Exact journal-draft validation | Implemented, local verification required | `api/app/domain/ledger.py` |
-| FastAPI health and validation routes | Implemented, local verification required | `api/app/api/routes.py` |
-| Unit/API tests | Authored, local verification required | `api/tests/` |
-| PostgreSQL persistence | Not started | No database configuration or migrations |
-| Invoice and approval workflows | Not started | No implementation exists |
-| Ledger posting/idempotency/reversal | Not started | Only draft validation exists |
-| Reconciliation | Not started | No implementation exists |
-| Frontend | Not started | No UI exists |
+| Exact journal-draft validation | Implemented | `api/app/domain/ledger.py` |
+| Deterministic approval policy | Implemented | `api/app/domain/policy.py` |
+| Cue inbox + evidence + recommendations | Implemented | `api/app/infrastructure/seed.py`, `/api/v1/cues` |
+| Approvals with actor/role/reason | Implemented | `/api/v1/cues/{id}/approvals` |
+| Ledger posting + idempotency | Implemented | `/api/v1/cues/{id}/post` |
+| Reconciliation explanations | Implemented | `/api/v1/reconciliation` |
+| Append-only audit trail | Implemented | `/api/v1/audit` |
+| Branded splash + workspace UI | Implemented | `web/` |
+| Architecture docs and diagrams | Implemented | `docs/` |
+| Process-memory seeded persistence | Implemented (demo) | `api/app/infrastructure/store.py` |
+| PostgreSQL persistence | Not started | Store interface is swap-ready |
+| Real channel delivery | Out of scope for demo | Simulated only |
 
-Run from `api/`:
+## Verification
 
 ```bash
-python -m pip install -e '.[dev]'
-python -m pytest
-ruff check .
-ruff format --check .
+cd api && source .venv/bin/activate && pytest && ruff check . && ruff format --check .
+cd ../web && npm run build
 ```
 
 Do not mark a check passed until the command actually runs in your environment.

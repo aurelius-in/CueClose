@@ -4,7 +4,13 @@ from decimal import Decimal
 
 import pytest
 
-from app.domain.ledger import JournalDraft, JournalLine, JournalValidationError, build_journal_draft, parse_amount
+from app.domain.ledger import (
+    JournalDraft,
+    JournalLine,
+    JournalValidationError,
+    build_journal_draft,
+    parse_amount,
+)
 
 
 def test_decimal_amounts_do_not_round() -> None:

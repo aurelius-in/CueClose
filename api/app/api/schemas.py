@@ -48,3 +48,32 @@ class HealthResponse(BaseModel):
     status: str
     mode: str
     persistence: str
+    tour_id: str | None = None
+
+
+class ActorRef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor_id: str = Field(min_length=1, max_length=64)
+
+
+class ApprovalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor_id: str = Field(min_length=1, max_length=64)
+    decision: str = Field(min_length=1, max_length=16)
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+class PostRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor_id: str = Field(min_length=1, max_length=64)
+    idempotency_key: str = Field(min_length=1, max_length=128)
+
+
+class ExplainVarianceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor_id: str = Field(min_length=1, max_length=64)
+    explanation: str = Field(min_length=1, max_length=4000)
