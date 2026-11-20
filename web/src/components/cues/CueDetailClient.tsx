@@ -149,8 +149,13 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
         />
         <div className="mt-4 flex flex-wrap gap-3">
           <Button
-            disabled={busy}
+            disabled={busy || !["new", "held"].includes(cue.status)}
             variant="secondary"
+            title={
+              ["new", "held"].includes(cue.status)
+                ? "Move this cue into review"
+                : "Review is only available from new or held"
+            }
             onClick={() =>
               void run(async () => {
                 await api.review(cue.id, actorId);
@@ -161,7 +166,8 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             Open review
           </Button>
           <Button
-            disabled={busy}
+            disabled={busy || !["awaiting_approval", "in_review", "held"].includes(cue.status)}
+            title="Record an approval decision"
             onClick={() =>
               void run(async () => {
                 await api.approve(cue.id, {
@@ -169,15 +175,16 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
                   decision: "approve",
                   reason,
                 });
-                setMessage("Approval recorded.");
+                setMessage("Approval recorded. You can post the journal next.");
               })
             }
           >
             Approve
           </Button>
           <Button
-            disabled={busy}
+            disabled={busy || !["awaiting_approval", "in_review", "held"].includes(cue.status)}
             variant="secondary"
+            title="Hold this cue for more context"
             onClick={() =>
               void run(async () => {
                 await api.approve(cue.id, {
@@ -193,11 +200,16 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
           </Button>
           <Button
             disabled={busy || cue.status !== "approved"}
+            title={
+              cue.status === "approved"
+                ? "Post a balanced journal for this cue"
+                : "Approve the cue before posting"
+            }
             onClick={() =>
               void run(async () => {
                 const result = await api.post(cue.id, {
                   actor_id: actorId,
-                  idempotency_key: `ui-post-${cue.id}`,
+                  idempotency_key: `ui-post-${cue.id}-${Date.now()}`,
                 });
                 setMessage(
                   result.idempotent_replay
@@ -210,6 +222,11 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             Post journal
           </Button>
         </div>
+        {cue.status !== "approved" && cue.status !== "posted" ? (
+          <p className="mt-3 text-xs text-cue-slate">
+            Post journal stays disabled until this cue is approved.
+          </p>
+        ) : null}
       </section>
     </div>
   );
