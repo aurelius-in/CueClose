@@ -3,7 +3,10 @@ import {
   audit,
   canDecide,
   dashboard,
+  findDuplicateCandidates,
   formatMoney,
+  getCue,
+  getRecon,
   getSessionActor,
   getStore,
   resetStore,
@@ -41,7 +44,7 @@ export async function GET(request: NextRequest, ctx: Ctx) {
   if (path === "demo/dashboard") {
     const actor = getSessionActor(viewer.sub);
     return attach(request, json({
-        ...dashboard(store),
+        ...dashboard(store, actor),
         active_actor_id: actor.id,
         viewer: { name: viewer.name, email: viewer.email, kind: viewer.kind },
       }),
@@ -64,9 +67,16 @@ export async function GET(request: NextRequest, ctx: Ctx) {
   }
   if (path.startsWith("cues/") && path.split("/").length === 2) {
     const id = path.split("/")[1];
-    const cue = store.cues[id];
+    const cue = getCue(store, id);
     if (!cue) return attach(request, json({ detail: { code: "not_found", message: "Unknown cue" } }, 404), setCookie);
-    return attach(request, json(cue), setCookie);
+    return attach(
+      request,
+      json({
+        ...cue,
+        duplicate_candidates: findDuplicateCandidates(store, cue),
+      }),
+      setCookie,
+    );
   }
   if (path === "ledger/journals") {
     return attach(request, json(Object.values(store.journals).sort((a, b) => b.posted_at.localeCompare(a.posted_at))),
@@ -157,7 +167,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 
   if (path.match(/^cues\/[^/]+\/review$/)) {
     const id = path.split("/")[1];
-    const cue = store.cues[id];
+    const cue = getCue(store, id);
     if (!cue) return attach(request, json({ detail: { code: "not_found", message: "Unknown cue" } }, 404), setCookie);
     if (!["new", "held"].includes(cue.status)) {
       return attach(request, json({ detail: { code: "invalid_state", message: `Cannot review from ${cue.status}` } }, 409),
@@ -182,7 +192,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 
   if (path.match(/^cues\/[^/]+\/approvals$/)) {
     const id = path.split("/")[1];
-    const cue = store.cues[id];
+    const cue = getCue(store, id);
     if (!cue) return attach(request, json({ detail: { code: "not_found", message: "Unknown cue" } }, 404), setCookie);
     if (!body.reason?.trim()) {
       return attach(request, json({ detail: { code: "invalid_input", message: "A reason is required" } }, 422),
@@ -200,12 +210,31 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       if (!verdict.allowed) {
         return attach(request, json({ detail: { code: verdict.code, message: verdict.message } }, 403), setCookie);
       }
+      const duplicates = findDuplicateCandidates(store, cue);
+      if (duplicates.length > 0 && body.acknowledge_duplicate !== true) {
+        return attach(
+          request,
+          json(
+            {
+              detail: {
+                code: "DUPLICATE_CANDIDATES",
+                message:
+                  "Possible duplicate invoices found. Acknowledge the warning before approving.",
+                duplicates,
+              },
+            },
+            409,
+          ),
+          setCookie,
+        );
+      }
       cue.status = "approved";
       cue.hold_reason = null;
     } else {
       cue.status = "held";
       cue.hold_reason = body.reason.trim();
     }
+    const duplicates = findDuplicateCandidates(store, cue);
     audit(store, {
       actor_id: actor.id,
       actor_name: actor.name,
@@ -213,7 +242,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       entity_type: "cue",
       entity_id: cue.id,
       summary: `${actor.name} recorded ${decision} on ${cue.id}`,
-      details: { reason: body.reason.trim() },
+      details: {
+        reason: body.reason.trim(),
+        acknowledge_duplicate: Boolean(body.acknowledge_duplicate),
+        duplicate_ids: duplicates.map((item) => item.id),
+      },
     });
     return attach(request, json({
         cue,
@@ -223,6 +256,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
           actor_role: actor.role,
           reason: body.reason.trim(),
           policy_version: store.policy_version,
+          acknowledge_duplicate: Boolean(body.acknowledge_duplicate),
         },
       }),
       setCookie,
@@ -231,7 +265,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 
   if (path.match(/^cues\/[^/]+\/post$/)) {
     const id = path.split("/")[1];
-    const cue = store.cues[id];
+    const cue = getCue(store, id);
     if (!cue) return attach(request, json({ detail: { code: "not_found", message: "Unknown cue" } }, 404), setCookie);
     if (!body.idempotency_key?.trim()) {
       return attach(request, json({ detail: { code: "invalid_input", message: "idempotency_key is required" } }, 422),
@@ -322,7 +356,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 
   if (path.match(/^reconciliation\/[^/]+\/explain$/)) {
     const id = path.split("/")[1];
-    const item = store.reconciliations[id];
+    const item = getRecon(store, id);
     if (!item) {
       return attach(request, json({ detail: { code: "not_found", message: "Unknown reconciliation item" } }, 404),
         setCookie,

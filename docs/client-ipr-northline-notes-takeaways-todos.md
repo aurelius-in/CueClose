@@ -73,10 +73,21 @@
 - [ ] Send architecture one-pager: identity, channels, decision requests vs ledger posting
 - [ ] Keep synthetic/public demo clearly labeled; document guest vs signed-in behavior for Elena
 
-### Priority 1 — two-week product slice (build next)
+### Working-session split (Nov 2026)
 
-- [ ] **Waiting-on-me home** for the current actor/viewer queue
-- [ ] **Show / venue filters** on cue inbox
+**Implement before the collaborative interview (done / in progress):**
+- [x] **Waiting-on-me home** + role-aware queue on Command
+- [x] **Show / venue filters** (and waiting-on-me toggle) on cue inbox
+- [x] **Duplicate-invoice warning** with forced acknowledge before approve
+
+**Reserve for live design with the team (more interesting tradeoffs):**
+- [ ] **Needs-info state** + tour-manager assign-show prompt (channel card, expiry, escalation)
+- [ ] **Ambient Message Preview** (Teams / Slack / email / SMS → same approval API)
+- [ ] **Registered asks** with citations (“why did Portland production move?”)
+- Optional if time: shadow ladder, budget soft alerts, auditor export, mobile decision cards
+
+### Priority 1 — remaining ambient / orchestration slice
+
 - [ ] **Needs-info state** + tour-manager assign-show prompt (simulated channel card)
 - [ ] **Expiry + escalation** (tour manager → production manager)
 - [ ] **Ambient Message Preview** panel (Teams / Slack / email / SMS cards → same approval API)
@@ -86,7 +97,7 @@
 
 - [ ] **Registered asks:** what’s waiting for me; why did {show} production move; open recon breaks (cited)
 - [ ] **Shadow / advisory / supervised ladder** UI with evaluation counts; default shadow
-- [ ] **Duplicate-invoice warning** (vendor + date + amount near-match) before approve
+- [x] **Duplicate-invoice warning** (vendor + date + amount near-match) before approve
 - [ ] **Show budget soft-cap alerts** as exception cues
 - [ ] **Auditor export pack** (cue + evidence + decision + journal + recon explanation)
 

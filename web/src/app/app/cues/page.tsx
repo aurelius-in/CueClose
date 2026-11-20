@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { api, type Cue } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { api, type Cue, type Show } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/utils";
 
-export default function CuesPage() {
+function CuesPageInner() {
+  const searchParams = useSearchParams();
   const [cues, setCues] = useState<Cue[]>([]);
+  const [shows, setShows] = useState<Show[]>([]);
+  const [showFilter, setShowFilter] = useState<string>(searchParams.get("show") ?? "all");
+  const [waitingOnly, setWaitingOnly] = useState(searchParams.get("waiting") === "1");
+  const [waitingIds, setWaitingIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
       try {
-        setCues(await api.cues());
+        const [cueList, dashboard] = await Promise.all([api.cues(), api.dashboard()]);
+        setCues(cueList);
+        setShows(dashboard.shows);
+        setWaitingIds(new Set(dashboard.waiting_on_me.map((item) => item.id)));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load cues");
       } finally {
@@ -23,6 +32,14 @@ export default function CuesPage() {
       }
     })();
   }, []);
+
+  const filtered = useMemo(() => {
+    return cues.filter((cue) => {
+      if (showFilter !== "all" && cue.suggested_show_id !== showFilter) return false;
+      if (waitingOnly && !waitingIds.has(cue.id)) return false;
+      return true;
+    });
+  }, [cues, showFilter, waitingOnly, waitingIds]);
 
   if (loading) return <p className="text-cue-slate">Loading ambient cues…</p>;
   if (error) {
@@ -39,13 +56,47 @@ export default function CuesPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cue-green">Inbox</p>
         <h1 className="mt-2 font-display text-4xl font-bold text-cue-navy">Ambient cues</h1>
         <p className="mt-2 max-w-2xl text-cue-slate">
-          Each cue preserves source evidence and a model recommendation. Nothing posts until a
-          server-checked approval path succeeds.
+          Filter by show for the city you own. Waiting-on-me mirrors the active persona&apos;s
+          queue from Command.
         </p>
       </div>
 
+      <div className="flex flex-col gap-3 rounded-2xl border border-cue-line/80 bg-white/90 p-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-cue-slate">
+            Show / venue
+          </label>
+          <select
+            className="mt-2 w-full rounded-xl border border-cue-line bg-cue-paper px-3 py-3 text-sm font-semibold text-cue-navy"
+            value={showFilter}
+            onChange={(event) => setShowFilter(event.target.value)}
+          >
+            <option value="all">All shows</option>
+            {shows.map((show) => (
+              <option key={show.id} value={show.id}>
+                {show.name} · {show.venue}
+              </option>
+            ))}
+          </select>
+        </div>
+        <label className="flex items-center gap-2 rounded-xl border border-cue-line bg-cue-paper px-4 py-3 text-sm font-semibold text-cue-navy">
+          <input
+            type="checkbox"
+            checked={waitingOnly}
+            onChange={(event) => setWaitingOnly(event.target.checked)}
+            className="h-4 w-4 accent-[var(--cue-green)]"
+          />
+          Waiting on me ({waitingIds.size})
+        </label>
+      </div>
+
       <div className="space-y-3">
-        {cues.map((cue) => (
+        {filtered.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-cue-line bg-white/70 p-8 text-center text-cue-slate">
+            No cues match this filter.
+          </div>
+        ) : null}
+        {filtered.map((cue) => (
           <div
             key={cue.id}
             className="flex flex-col gap-4 rounded-2xl border border-cue-line/80 bg-white/90 p-5 sm:flex-row sm:items-center sm:justify-between"
@@ -54,10 +105,16 @@ export default function CuesPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-semibold text-cue-navy">{cue.vendor_name}</h2>
                 <StatusBadge status={cue.status} />
+                {waitingIds.has(cue.id) ? (
+                  <span className="rounded-md bg-cue-mist px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-cue-navy">
+                    Waiting on me
+                  </span>
+                ) : null}
               </div>
               <p className="mt-1 text-sm text-cue-slate">{cue.description}</p>
               <p className="mt-2 font-mono text-xs text-cue-slate">
-                {cue.id} · received {new Date(cue.received_at).toLocaleString()}
+                {cue.invoice_number} · {cue.suggested_show_id ?? "unassigned show"} · received{" "}
+                {new Date(cue.received_at).toLocaleString()}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -80,5 +137,13 @@ export default function CuesPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function CuesPage() {
+  return (
+    <Suspense fallback={<p className="text-cue-slate">Loading ambient cues…</p>}>
+      <CuesPageInner />
+    </Suspense>
   );
 }
