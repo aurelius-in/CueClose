@@ -14,6 +14,10 @@ Last updated: 2026-11-19
 | Branded splash + workspace UI | Implemented | `web/` |
 | Architecture docs and diagrams | Implemented | `docs/` |
 | Process-memory seeded persistence | Implemented (demo) | `api/app/infrastructure/store.py` |
+| Waiting-on-me queue + show filters | Implemented (demo) | Command + `/app/cues` |
+| Duplicate-invoice acknowledge gate | Implemented (demo) | `findDuplicateCandidates` + approvals |
+| Needs-info / ambient channel cards | Reserved for working session | product discovery notes |
+| Cited producer asks | Reserved for working session | product discovery notes |
 | PostgreSQL persistence | Not started | Store interface is swap-ready |
 | Real channel delivery | Out of scope for demo | Simulated only |
 

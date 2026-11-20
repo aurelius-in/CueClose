@@ -1,6 +1,6 @@
 import { CueDetailClient } from "@/components/cues/CueDetailClient";
 
-const KNOWN_CUES = ["cue_001", "cue_002", "cue_003", "cue_004", "cue_005"];
+const KNOWN_CUES = ["cue_001", "cue_002", "cue_003", "cue_004", "cue_005", "cue_006"];
 
 export function generateStaticParams() {
   return KNOWN_CUES.map((id) => ({ id }));

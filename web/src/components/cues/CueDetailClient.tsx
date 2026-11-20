@@ -5,12 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { api, type Cue } from "@/lib/api";
+import { api, type Cue, type DuplicateCandidate } from "@/lib/api";
 import { money } from "@/lib/utils";
 
 export function CueDetailClient({ cueId }: { cueId: string }) {
   const { refresh } = useDemo();
   const [cue, setCue] = useState<Cue | null>(null);
+  const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
+  const [acknowledgeDuplicate, setAcknowledgeDuplicate] = useState(false);
   const [reason, setReason] = useState("Evidence and show tagging are consistent with policy.");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,12 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      setCue(await api.cue(cueId));
+      const data = await api.cue(cueId);
+      setCue(data);
+      setDuplicates(data.duplicate_candidates ?? []);
+      if (!(data.duplicate_candidates?.length)) {
+        setAcknowledgeDuplicate(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load cue");
     }
@@ -66,6 +73,7 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
         <p className="mt-2 text-cue-slate">{cue.description}</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <StatusBadge status={cue.status} />
+          <span className="font-mono text-sm text-cue-slate">{cue.invoice_number}</span>
           <span className="font-display text-2xl font-bold text-cue-navy">{money(cue.amount)}</span>
         </div>
       </div>
@@ -81,6 +89,49 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
           {error ?? message}
         </div>
       )}
+
+      {duplicates.length > 0 ? (
+        <section className="rounded-2xl border border-[#F59E0B]/40 bg-[#FFFBEB] p-6">
+          <h2 className="font-display text-2xl font-bold text-cue-navy">Possible duplicates</h2>
+          <p className="mt-2 text-sm text-cue-slate">
+            Same vendor, close amount, and nearby receive date. Acknowledge before approving so we
+            do not double-pay a PA resubmit.
+          </p>
+          <div className="mt-4 space-y-3">
+            {duplicates.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-xl border border-[#F59E0B]/30 bg-white/80 px-4 py-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-semibold text-cue-navy">
+                    {item.vendor_name} · {item.invoice_number}
+                  </div>
+                  <Link href={`/app/cues/${item.id}/`} className="text-sm font-semibold text-cue-green">
+                    Open {item.id}
+                  </Link>
+                </div>
+                <p className="mt-1 text-sm text-cue-slate">
+                  {money(item.amount)} · {item.status.replaceAll("_", " ")} ·{" "}
+                  {item.suggested_show_id ?? "unassigned"}
+                </p>
+                <p className="mt-1 text-xs text-cue-slate">{item.match_reasons.join(" · ")}</p>
+              </div>
+            ))}
+          </div>
+          <label className="mt-4 flex items-start gap-3 text-sm font-semibold text-cue-navy">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 accent-[var(--cue-green)]"
+              checked={acknowledgeDuplicate}
+              onChange={(event) => setAcknowledgeDuplicate(event.target.checked)}
+            />
+            <span>
+              I reviewed the possible duplicates and still want to approve this cue if I proceed.
+            </span>
+          </label>
+        </section>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">
@@ -166,13 +217,22 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             Open review
           </Button>
           <Button
-            disabled={busy || !["awaiting_approval", "in_review", "held"].includes(cue.status)}
-            title="Record an approval decision"
+            disabled={
+              busy ||
+              !["awaiting_approval", "in_review", "held"].includes(cue.status) ||
+              (duplicates.length > 0 && !acknowledgeDuplicate)
+            }
+            title={
+              duplicates.length > 0 && !acknowledgeDuplicate
+                ? "Acknowledge possible duplicates before approving"
+                : "Record an approval decision"
+            }
             onClick={() =>
               void run(async () => {
                 await api.approve(cue.id, {
                   decision: "approve",
                   reason,
+                  acknowledge_duplicate: duplicates.length > 0 ? true : undefined,
                 });
                 setMessage("Approval recorded. You can post the journal next.");
               })
@@ -219,6 +279,11 @@ export function CueDetailClient({ cueId }: { cueId: string }) {
             Post journal
           </Button>
         </div>
+        {duplicates.length > 0 && !acknowledgeDuplicate ? (
+          <p className="mt-3 text-xs text-cue-slate">
+            Approve stays disabled until you acknowledge the duplicate warning.
+          </p>
+        ) : null}
         {cue.status !== "approved" && cue.status !== "posted" ? (
           <p className="mt-3 text-xs text-cue-slate">
             Post journal stays disabled until this cue is approved.

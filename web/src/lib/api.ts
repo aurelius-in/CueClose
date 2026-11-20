@@ -45,12 +45,34 @@ export type Dashboard = {
     awaiting_approval: number;
     posted_entries: number;
     unexplained_variances: number;
+    waiting_on_me: number;
   };
+  waiting_on_me: Array<{
+    id: string;
+    vendor_name: string;
+    amount: string;
+    status: string;
+    suggested_show_id: string | null;
+    invoice_number: string;
+    received_at: string;
+    description: string;
+  }>;
   shows: Show[];
   actors: Actor[];
   policy_version: string;
   active_actor_id?: string;
-  viewer?: { name: string; email: string };
+  viewer?: { name: string; email: string; kind?: string };
+};
+
+export type DuplicateCandidate = {
+  id: string;
+  vendor_name: string;
+  invoice_number: string;
+  amount: string;
+  received_at: string;
+  status: string;
+  suggested_show_id: string | null;
+  match_reasons: string[];
 };
 
 export type Evidence = {
@@ -75,6 +97,7 @@ export type Recommendation = {
 export type Cue = {
   id: string;
   vendor_name: string;
+  invoice_number: string;
   currency: string;
   amount: string;
   description: string;
@@ -87,6 +110,7 @@ export type Cue = {
   hold_reason: string | null;
   evidence: Evidence[];
   recommendation: Recommendation | null;
+  duplicate_candidates?: DuplicateCandidate[];
 };
 
 export type Journal = {
@@ -146,7 +170,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({}),
     }),
-  approve: (id: string, payload: { decision: string; reason: string }) =>
+  approve: (
+    id: string,
+    payload: { decision: string; reason: string; acknowledge_duplicate?: boolean },
+  ) =>
     request<{ cue: Cue }>(`/cues/${id}/approvals`, {
       method: "POST",
       body: JSON.stringify(payload),

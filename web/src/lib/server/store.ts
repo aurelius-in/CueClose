@@ -28,6 +28,7 @@ export type Cue = {
   id: string;
   vendor_id: string;
   vendor_name: string;
+  invoice_number: string;
   currency: string;
   amount: string;
   description: string;
@@ -40,6 +41,17 @@ export type Cue = {
   hold_reason: string | null;
   evidence: Evidence[];
   recommendation: Recommendation | null;
+};
+
+export type DuplicateCandidate = {
+  id: string;
+  vendor_name: string;
+  invoice_number: string;
+  amount: string;
+  received_at: string;
+  status: string;
+  suggested_show_id: string | null;
+  match_reasons: string[];
 };
 export type Journal = {
   id: string;
@@ -126,6 +138,7 @@ function seed(): Store {
       id: "cue_001",
       vendor_id: "vendor_rig",
       vendor_name: "Northwind Rigging Co.",
+      invoice_number: "INV-88421",
       currency: "USD",
       amount: "8650.00",
       description: "Arena overhead package and overnight stand-by for Chicago",
@@ -169,6 +182,7 @@ function seed(): Store {
       id: "cue_002",
       vendor_id: "vendor_cater",
       vendor_name: "Stagecraft Catering",
+      invoice_number: "SC-2291",
       currency: "USD",
       amount: "1840.50",
       description: "Artist and crew buyout for Detroit show day",
@@ -204,6 +218,7 @@ function seed(): Store {
       id: "cue_003",
       vendor_id: "vendor_freight",
       vendor_name: "Lakehaul Freight",
+      invoice_number: "LH-77302",
       currency: "USD",
       amount: "4125.00",
       description: "Truck jump Detroit to Toronto plus border bond",
@@ -239,6 +254,7 @@ function seed(): Store {
       id: "cue_004",
       vendor_id: "vendor_radio",
       vendor_name: "Clearwave RF Services",
+      invoice_number: "CW-551",
       currency: "USD",
       amount: "975.00",
       description: "RF coordination and spare pack for Boston",
@@ -274,6 +290,7 @@ function seed(): Store {
       id: "cue_005",
       vendor_id: "vendor_local",
       vendor_name: "Beacon Local Crew",
+      invoice_number: "BLC-1904",
       currency: "USD",
       amount: "3200.00",
       description: "Local stagehands and forklift for Toronto load-in",
@@ -302,6 +319,43 @@ function seed(): Store {
         rationale: "Steward summary and call sheet agree on headcount.",
         evidence_ids: ["ev_005a"],
         policy_notes: ["Material approval required"],
+      },
+    },
+    // Near-duplicate of cue_002: same vendor, close amount, same show, resent by a second PA.
+    cue_006: {
+      id: "cue_006",
+      vendor_id: "vendor_cater",
+      vendor_name: "Stagecraft Catering",
+      invoice_number: "SC-2291-A",
+      currency: "USD",
+      amount: "1840.00",
+      description: "Artist and crew buyout for Detroit show day (PA resubmit)",
+      received_at: "2026-11-15T03:05:00Z",
+      status: "new",
+      suggested_show_id: "show_det",
+      approval_required: true,
+      materiality_threshold: "2500.00",
+      posted_journal_id: null,
+      hold_reason: null,
+      evidence: [
+        {
+          id: "ev_006a",
+          kind: "pdf_invoice",
+          label: "SC-2291-A Stagecraft",
+          captured_at: "2026-11-15T03:02:00Z",
+          excerpt: "Detroit buyout 84 covers · dietary riders attached · resent from production PA",
+          channel: "email_ingest",
+        },
+      ],
+      recommendation: {
+        account_code: "6400",
+        account_name: "Hospitality - Catering",
+        show_id: "show_det",
+        confidence: 0.86,
+        rationale:
+          "Matches Stagecraft Detroit hospitality pattern. Possible duplicate of SC-2291 already in review.",
+        evidence_ids: ["ev_006a"],
+        policy_notes: ["Below materiality threshold for tour_controller", "Duplicate review recommended"],
       },
     },
   };
@@ -453,8 +507,103 @@ export function audit(
   });
 }
 
-export function dashboard(store: Store) {
+/** Own-property cue lookup. Rejects prototype keys such as __proto__. */
+export function getCue(store: Store, id: string): Cue | null {
+  if (!Object.hasOwn(store.cues, id)) return null;
+  return store.cues[id] ?? null;
+}
+
+export function getRecon(store: Store, id: string): ReconItem | null {
+  if (!Object.hasOwn(store.reconciliations, id)) return null;
+  return store.reconciliations[id] ?? null;
+}
+
+/** Queue of cues that still need action from this persona. */
+export function waitingOnMe(store: Store, actor: Actor): Cue[] {
+  return Object.values(store.cues)
+    .filter((cue) => {
+      if (!["new", "in_review", "held", "awaiting_approval"].includes(cue.status)) return false;
+      if (actor.role === "tour_controller") {
+        return (
+          cue.status === "awaiting_approval" ||
+          cue.status === "held" ||
+          Number(cue.amount) >= 2500 ||
+          (cue.recommendation?.confidence ?? 1) < 0.75
+        );
+      }
+      if (actor.role === "production_manager") {
+        if (cue.status === "held") return false;
+        return canDecide(actor, cue).allowed;
+      }
+      if (actor.role === "tour_manager") {
+        return cue.status === "held" || !cue.suggested_show_id;
+      }
+      if (actor.role === "executive_producer") {
+        return cue.status === "awaiting_approval" && Number(cue.amount) >= 2500;
+      }
+      return false;
+    })
+    .sort((a, b) => b.received_at.localeCompare(a.received_at));
+}
+
+/** Near-duplicate heuristic: same vendor, close amount, nearby receive date, overlapping show. */
+export function findDuplicateCandidates(store: Store, cue: Cue): DuplicateCandidate[] {
+  const amount = Number(cue.amount);
+  const received = Date.parse(cue.received_at);
+  const candidates: DuplicateCandidate[] = [];
+
+  for (const other of Object.values(store.cues)) {
+    if (other.id === cue.id) continue;
+    if (["rejected"].includes(other.status)) continue;
+    if (other.vendor_id !== cue.vendor_id) continue;
+
+    const reasons: string[] = ["Same vendor"];
+    const otherAmount = Number(other.amount);
+    const amountDelta = amount === 0 ? 1 : Math.abs(otherAmount - amount) / amount;
+    if (amountDelta <= 0.05) reasons.push("Amount within 5%");
+    else continue;
+
+    const otherReceived = Date.parse(other.received_at);
+    const dayDelta = Math.abs(otherReceived - received) / (1000 * 60 * 60 * 24);
+    if (dayDelta <= 14) reasons.push("Received within 14 days");
+    else continue;
+
+    const invoiceStem = cue.invoice_number.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    const otherStem = other.invoice_number.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    if (
+      invoiceStem &&
+      otherStem &&
+      (invoiceStem.includes(otherStem.slice(0, 6)) || otherStem.includes(invoiceStem.slice(0, 6)))
+    ) {
+      reasons.push("Similar invoice number");
+    }
+
+    if (
+      cue.suggested_show_id &&
+      other.suggested_show_id &&
+      cue.suggested_show_id === other.suggested_show_id
+    ) {
+      reasons.push("Same suggested show");
+    }
+
+    candidates.push({
+      id: other.id,
+      vendor_name: other.vendor_name,
+      invoice_number: other.invoice_number,
+      amount: other.amount,
+      received_at: other.received_at,
+      status: other.status,
+      suggested_show_id: other.suggested_show_id,
+      match_reasons: reasons,
+    });
+  }
+
+  return candidates;
+}
+
+export function dashboard(store: Store, actor?: Actor) {
   const cues = Object.values(store.cues);
+  const waiting = actor ? waitingOnMe(store, actor) : [];
   return {
     tour: store.tour,
     metrics: {
@@ -464,7 +613,18 @@ export function dashboard(store: Store) {
       unexplained_variances: Object.values(store.reconciliations).filter(
         (r) => r.status === "unexplained",
       ).length,
+      waiting_on_me: waiting.length,
     },
+    waiting_on_me: waiting.map((cue) => ({
+      id: cue.id,
+      vendor_name: cue.vendor_name,
+      amount: cue.amount,
+      status: cue.status,
+      suggested_show_id: cue.suggested_show_id,
+      invoice_number: cue.invoice_number,
+      received_at: cue.received_at,
+      description: cue.description,
+    })),
     shows: store.shows,
     actors: store.actors,
     policy_version: store.policy_version,
