@@ -29,7 +29,7 @@ type DemoContextValue = {
 const DemoContext = createContext<DemoContextValue | null>(null);
 
 function readEditionCookie(): DemoEdition {
-  if (typeof document === "undefined") return "pilot";
+  if (typeof document === "undefined") return "pro";
   const match = document.cookie.match(new RegExp(`(?:^|; )${EDITION_COOKIE}=([^;]*)`));
   return parseEdition(match?.[1]);
 }
@@ -43,7 +43,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actorId, setActorIdState] = useState("actor_maya");
-  const [edition, setEditionState] = useState<DemoEdition>("pilot");
+  const [edition, setEditionState] = useState<DemoEdition>("pro");
   const [, startTransition] = useTransition();
 
   useEffect(() => {

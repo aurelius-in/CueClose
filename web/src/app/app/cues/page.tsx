@@ -12,7 +12,7 @@ import { money } from "@/lib/utils";
 function CuesPageInner() {
   const searchParams = useSearchParams();
   const { edition } = useDemo();
-  const pilot = edition === "pilot";
+  const isPro = edition === "pro";
   const [cues, setCues] = useState<Cue[]>([]);
   const [shows, setShows] = useState<Show[]>([]);
   const [showFilter, setShowFilter] = useState<string>(searchParams.get("show") ?? "all");
@@ -38,12 +38,12 @@ function CuesPageInner() {
 
   const filtered = useMemo(() => {
     return cues.filter((cue) => {
-      if (pilot && showFilter !== "all" && cue.suggested_show_id !== showFilter) return false;
-      if (pilot && waitingOnly && !waitingIds.has(cue.id)) return false;
-      if (!pilot && cue.id === "cue_006") return false;
+      if (isPro && showFilter !== "all" && cue.suggested_show_id !== showFilter) return false;
+      if (isPro && waitingOnly && !waitingIds.has(cue.id)) return false;
+      if (!isPro && cue.id === "cue_006") return false;
       return true;
     });
-  }, [cues, showFilter, waitingOnly, waitingIds, pilot]);
+  }, [cues, showFilter, waitingOnly, waitingIds, isPro]);
 
   if (loading) return <p className="text-cue-slate">Loading ambient cues…</p>;
   if (error) {
@@ -60,13 +60,13 @@ function CuesPageInner() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cue-green">Inbox</p>
         <h1 className="mt-2 font-display text-4xl font-bold text-cue-navy">Ambient cues</h1>
         <p className="mt-2 max-w-2xl text-cue-slate">
-          {pilot
+          {isPro
             ? "Filter by show for the city you own. Waiting-on-me mirrors the active persona's queue from Command."
             : "Each cue preserves source evidence and a model recommendation. Nothing posts until a server-checked approval path succeeds."}
         </p>
       </div>
 
-      {pilot ? (
+      {isPro ? (
         <div className="flex flex-col gap-3 rounded-2xl border border-cue-line/80 bg-white/90 p-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1">
             <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-cue-slate">
@@ -112,7 +112,7 @@ function CuesPageInner() {
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-semibold text-cue-navy">{cue.vendor_name}</h2>
                 <StatusBadge status={cue.status} />
-                {pilot && waitingIds.has(cue.id) ? (
+                {isPro && waitingIds.has(cue.id) ? (
                   <span className="rounded-md bg-cue-mist px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-cue-navy">
                     Waiting on me
                   </span>

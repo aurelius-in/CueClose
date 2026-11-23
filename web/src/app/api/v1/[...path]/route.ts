@@ -82,7 +82,7 @@ export async function GET(request: NextRequest, ctx: Ctx) {
       json({
         ...cue,
         duplicate_candidates:
-          edition === "pilot" ? findDuplicateCandidates(store, cue) : [],
+          edition === "pro" ? findDuplicateCandidates(store, cue) : [],
       }),
       setCookie,
     );
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       }
       const edition = requestEdition(request);
       const duplicates =
-        edition === "pilot" ? findDuplicateCandidates(store, cue) : [];
+        edition === "pro" ? findDuplicateCandidates(store, cue) : [];
       if (duplicates.length > 0 && body.acknowledge_duplicate !== true) {
         return attach(
           request,
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
       cue.hold_reason = body.reason.trim();
     }
     const duplicates =
-      requestEdition(request) === "pilot" ? findDuplicateCandidates(store, cue) : [];
+      requestEdition(request) === "pro" ? findDuplicateCandidates(store, cue) : [];
     audit(store, {
       actor_id: actor.id,
       actor_name: actor.name,

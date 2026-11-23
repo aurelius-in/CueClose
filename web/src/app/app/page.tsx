@@ -8,7 +8,7 @@ import { roleLabel } from "@/lib/utils";
 
 export default function CommandPage() {
   const { dashboard, loading, error, actorId, setActorId, refresh, edition } = useDemo();
-  const pilot = edition === "pilot";
+  const isPro = edition === "pro";
 
   if (loading && !dashboard) {
     return <p className="text-cue-slate">Loading tour close workspace…</p>;
@@ -26,7 +26,7 @@ export default function CommandPage() {
   }
   if (!dashboard) return null;
 
-  const metrics = pilot
+  const metrics = isPro
     ? [
         { label: "Waiting on me", value: dashboard.metrics.waiting_on_me },
         { label: "Open cues", value: dashboard.metrics.open_cues },
@@ -60,13 +60,13 @@ export default function CommandPage() {
             <span className="font-mono text-sm text-cue-navy">{dashboard.policy_version}</span>
           </p>
           <p className="mt-4 max-w-xl text-cue-slate">
-            {pilot
+            {isPro
               ? "Start from what is waiting on the active persona. Recommendations arrive with evidence. Authority is checked on the server."
               : "Recommendations arrive with evidence. Authority is checked on the server. Posting is exact, idempotent, and reversible only through a later correcting entry."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={pilot ? "/app/cues?waiting=1" : "/app/cues"}>
-              <Button>{pilot ? "Open my queue" : "Open cue inbox"}</Button>
+            <Link href={isPro ? "/app/cues?waiting=1" : "/app/cues"}>
+              <Button>{isPro ? "Open my queue" : "Open cue inbox"}</Button>
             </Link>
             <Link href="/app/reconciliation">
               <Button variant="secondary">Review variances</Button>
@@ -92,7 +92,7 @@ export default function CommandPage() {
         ))}
       </section>
 
-      {pilot ? (
+      {isPro ? (
         <section className="rounded-2xl border border-cue-line/80 bg-white/90 p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>

@@ -66,8 +66,8 @@ export function AppShell({
                   value={edition}
                   onChange={(event) => onEditionChange(event.target.value as DemoEdition)}
                 >
-                  <option value="baseline">Baseline</option>
-                  <option value="pilot">Pro edition</option>
+                  <option value="classic">Classic</option>
+                  <option value="pro">Pro</option>
                 </select>
               </label>
             ) : null}
@@ -83,13 +83,13 @@ export function AppShell({
             ) : null}
           </div>
         </div>
-        {edition === "pilot" ? (
-          <div className="border-t border-[#C9894A]/25 bg-[#FBF6F0] px-4 py-2 text-center text-xs font-semibold tracking-wide text-[#7A4E24] sm:px-6 lg:px-8">
-            Pro edition slice · waiting-on-me, show filters, duplicate acknowledge gate
+        {edition === "pro" ? (
+          <div className="border-t border-cue-green/25 bg-cue-mist/60 px-4 py-2 text-center text-xs font-semibold tracking-wide text-cue-navy sm:px-6 lg:px-8">
+            Pro edition · waiting-on-me queue, show filters, duplicate acknowledge gate
           </div>
         ) : (
           <div className="border-t border-cue-line/70 bg-cue-paper/80 px-4 py-2 text-center text-xs font-semibold tracking-wide text-cue-slate sm:px-6 lg:px-8">
-            Baseline edition · Classic ask surface for side-by-side comparison
+            Classic edition · core cue review, approvals, posting, and reconciliation
           </div>
         )}
       </header>
