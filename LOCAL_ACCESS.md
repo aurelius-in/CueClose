@@ -1,4 +1,4 @@
-# Get this project onto your Windows machine
+# Local development on Windows
 
 This cloud VM cannot write to `C:\local\CueClose`. Use GitHub as the source of truth.
 
@@ -17,14 +17,14 @@ Or download `GET_LOCAL_COPY.ps1` from the repo and run it. It clones/pulls into 
 1. Open https://github.com/aurelius-in/CueClose/archive/refs/heads/main.zip
 2. Extract into `C:\local\CueClose` (replace/merge as needed)
 
-## What you get locally
+## What you get
 
 | Path | What |
 |---|---|
-| `docs\` | Architecture docs and diagrams |
-| `api\` | FastAPI reference service |
-| `docs\client-ipr-*.md` | Simulated client transcript + notes |
-| `web\` | Runnable demo (Baseline vs Pro edition editions) |
+| `web\` | Next.js product UI + embedded demo API (Classic and Pro editions) |
+| `api\` | FastAPI reference service and domain tests |
+| `docs\` | Architecture viewpoints, ADRs, diagrams, product walkthrough |
+| `brand\` | Logo and color tokens |
 
 ### Run the demo locally
 
@@ -35,4 +35,4 @@ npm run build
 npm run start -- --port 3847
 ```
 
-Open http://127.0.0.1:3847 and use the header **Edition** toggle.
+Open http://127.0.0.1:3847 and use the header **Edition** toggle to compare Classic and Pro.

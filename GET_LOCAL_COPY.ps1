@@ -34,7 +34,5 @@ Write-Host ""
 Write-Host "Done. Key paths:"
 Write-Host "  $target"
 Write-Host "  $target\docs\"
-Write-Host "  $target\brand\"
-Write-Host "  $target\scripts\"
 Write-Host "  $target\web\   (run: cd web; npm install; npm run build; npm run start -- --port 3847)"
 explorer $target

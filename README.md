@@ -2,9 +2,9 @@
 
 **The tour keeps moving. The books keep up.**
 
-CueClose is a synthetic-data portfolio demonstration of explainable touring-finance workflows: ambient invoice cues, evidence-linked recommendations, explicit approvals, exact double-entry posting, reconciliation that explains variance, and an append-only audit trail.
+CueClose is a touring-finance coordination product for live production close: ambient invoice cues, evidence-linked recommendations, explicit approvals, exact double-entry posting, reconciliation that explains variance, and an append-only audit trail.
 
-It is an original portfolio project and is not affiliated with third-party platforms or any live operator.
+It began as a client-inspired portfolio build for entertainment and production finance workflows. The demo runs on synthetic tour data so anyone can explore the product without real books or live integrations.
 
 ## Why this shape
 
@@ -15,6 +15,17 @@ It is an original portfolio project and is not affiliated with third-party platf
 | Authority is explicit | Role, materiality, and confidence gates live in `api/app/domain/policy.py` |
 | Evidence over vibes | Every cue carries source excerpts; every decision writes audit events |
 | Demo-safe | Fictional Horizon Arena Tour data; simulated channels only |
+
+## Editions
+
+The workspace ships two product editions so stakeholders can compare the core close path with the operations desk:
+
+| Edition | What you get |
+|---|---|
+| **Classic** | Cue inbox, evidence, role-gated approvals, posting, reconciliation, audit |
+| **Pro** | Classic plus waiting-on-me queue, show filters, and a duplicate-invoice acknowledge gate |
+
+Toggle **Edition** in the app header.
 
 ## Quick start
 
@@ -72,7 +83,7 @@ ruff check .
 ruff format --check .
 ```
 
-## Demo path (five minutes)
+## Product walkthrough (five minutes)
 
 1. Enter from the splash screen into **Command**.
 2. On a Public publish, you start as a guest (Jordan Blake). Private or Team apps use your Cursor sign-in and can select **Maya Chen** (tour controller).
@@ -104,6 +115,10 @@ Readable diagrams:
 - [`docs/diagrams/workflow.md`](docs/diagrams/workflow.md)
 - [`docs/architecture/`](docs/architecture/)
 
+## Local clone (Windows)
+
+See [`LOCAL_ACCESS.md`](LOCAL_ACCESS.md) or run [`GET_LOCAL_COPY.ps1`](GET_LOCAL_COPY.ps1) to clone into `C:\local\CueClose`.
+
 ## Brand
 
 | Token | Value |
@@ -116,4 +131,4 @@ Assets live in `brand/` and are copied into `web/public/` for the UI.
 
 ## Status
 
-See [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md). The foundation ledger validator remains; the runnable demo now covers inbox, approvals, posting with idempotency, reconciliation explanations, audit, and UI.
+See [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md). The foundation ledger validator remains; the runnable demo covers inbox, approvals, posting with idempotency, reconciliation explanations, audit, Classic/Pro editions, and UI.

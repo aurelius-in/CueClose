@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This viewpoint describes fictional organizational roles and target financial policies. It is not a statement of implemented or third-party platforms functionality.
+This viewpoint describes fictional organizational roles and target financial policies for the CueClose product model.
 
 ## Roles
 
