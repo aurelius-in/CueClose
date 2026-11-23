@@ -12,7 +12,8 @@ Last updated: 2026-11-23
 | Reconciliation explanations | Implemented | `/api/v1/reconciliation` |
 | Append-only audit trail | Implemented | `/api/v1/audit` |
 | Branded splash + workspace UI | Implemented | `web/` |
-| Architecture docs and diagrams | Implemented | `docs/` |
+| Architecture docs and diagrams | Implemented | `docs/` (overview HTML/PDF + viewpoints) |
+| Demo walkthrough script + PDF | Implemented | `docs/guides/demo-walkthrough.*` |
 | Process-memory seeded persistence | Implemented (demo) | `api/app/infrastructure/store.py` |
 | Classic / Pro edition toggle | Implemented (demo) | `web/src/lib/edition.ts` |
 | Waiting-on-me queue + show filters | Implemented (Pro) | Command + `/app/cues` |

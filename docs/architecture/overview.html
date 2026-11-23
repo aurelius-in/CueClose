@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CueClose Architecture Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cue-green: #01A25B;
+      --cue-green-deep: #018A4E;
+      --cue-navy: #012F5D;
+      --cue-mist: #E7F3EC;
+      --cue-paper: #F4F8F6;
+      --cue-ink: #0B1C2C;
+      --cue-slate: #4A5D73;
+      --cue-line: #C9D8CF;
+      --cue-white: #FFFFFF;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: 15px; }
+    body {
+      margin: 0;
+      color: var(--cue-ink);
+      background:
+        radial-gradient(1100px 520px at 8% -8%, rgba(1,162,91,0.14), transparent 55%),
+        radial-gradient(900px 480px at 96% 0%, rgba(1,47,93,0.10), transparent 50%),
+        linear-gradient(180deg, var(--cue-paper), #EEF5F1 40%, var(--cue-paper));
+      font-family: "Manrope", system-ui, sans-serif;
+      line-height: 1.55;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 28px 72px;
+    }
+
+    h1, h2, h3, .display {
+      font-family: "Syne", system-ui, sans-serif;
+      letter-spacing: -0.02em;
+      color: var(--cue-navy);
+      line-height: 1.15;
+    }
+
+    h1 { font-size: 2.55rem; margin: 0.2em 0 0.35em; font-weight: 800; }
+    h2 {
+      font-size: 1.55rem;
+      margin: 0 0 0.55em;
+      font-weight: 700;
+      padding-bottom: 0.35em;
+      border-bottom: 2px solid var(--cue-mist);
+    }
+    h3 { font-size: 1.1rem; margin: 1.1em 0 0.4em; font-weight: 700; }
+    p { margin: 0 0 0.85em; color: var(--cue-slate); }
+    strong { color: var(--cue-navy); font-weight: 700; }
+    a { color: var(--cue-green-deep); }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cue-green);
+      margin-bottom: 0.6em;
+    }
+
+    .cover {
+      display: grid;
+      gap: 1.4rem;
+      padding: 2rem 0 2.4rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--cue-line);
+    }
+
+    .cover-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      height: 72px;
+      width: auto;
+      display: block;
+    }
+
+    .meta {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--cue-slate);
+    }
+
+    .meta strong { display: block; color: var(--cue-navy); font-size: 0.95rem; }
+
+    .tagline {
+      font-family: "Syne", system-ui, sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cue-navy);
+      max-width: 28ch;
+      margin: 0;
+    }
+
+    .lede {
+      font-size: 1.05rem;
+      max-width: 62ch;
+      color: var(--cue-slate);
+    }
+
+    .section {
+      margin: 2.2rem 0;
+      break-inside: avoid;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.88);
+      border: 1px solid var(--cue-line);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.25rem;
+      box-shadow: 0 14px 36px rgba(1,47,93,0.06);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.8rem 0 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: var(--cue-mist);
+      color: var(--cue-navy);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .pill.navy {
+      background: var(--cue-navy);
+      color: white;
+    }
+
+    .pill.green {
+      background: var(--cue-green);
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.7rem;
+      border-bottom: 1px solid var(--cue-line);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cue-slate);
+      font-weight: 700;
+      background: var(--cue-mist);
+    }
+
+    td strong { display: block; margin-bottom: 0.15em; }
+
+    code, .mono {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.84em;
+    }
+
+    code {
+      background: var(--cue-mist);
+      padding: 0.1em 0.35em;
+      border-radius: 5px;
+      color: var(--cue-navy);
+    }
+
+    .callout {
+      border-left: 4px solid var(--cue-green);
+      background: linear-gradient(90deg, var(--cue-mist), transparent);
+      padding: 0.9rem 1rem;
+      border-radius: 0 10px 10px 0;
+      margin: 1rem 0;
+    }
+
+    .callout p { margin: 0; color: var(--cue-navy); font-weight: 600; }
+    .callout .sub { margin-top: 0.35rem; font-weight: 500; color: var(--cue-slate); }
+
+    /* Diagrams */
+    .diagram {
+      background: white;
+      border: 1px solid var(--cue-line);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      margin: 0.85rem 0 1.1rem;
+      overflow: hidden;
+    }
+
+    .diagram-caption {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cue-slate);
+      margin-bottom: 0.85rem;
+    }
+
+    .sys {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 0.85rem;
+    }
+
+    .lane {
+      border: 1.5px dashed var(--cue-line);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: var(--cue-paper);
+    }
+
+    .lane h4 {
+      margin: 0 0 0.65rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cue-green-deep);
+      font-family: "Manrope", sans-serif;
+    }
+
+    .node {
+      background: white;
+      border: 1px solid var(--cue-line);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.86rem;
+      color: var(--cue-navy);
+      font-weight: 650;
+      font-weight: 600;
+    }
+
+    .node span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--cue-slate);
+      margin-top: 0.15rem;
+    }
+
+    .node.accent {
+      border-color: rgba(1,162,91,0.45);
+      background: linear-gradient(180deg, #F3FBF7, white);
+    }
+
+    .node.navy {
+      background: var(--cue-navy);
+      color: white;
+      border-color: var(--cue-navy);
+    }
+
+    .node.navy span { color: rgba(255,255,255,0.78); }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 0.4rem;
+    }
+
+    .flow-step {
+      flex: 1 1 110px;
+      min-width: 100px;
+      background: white;
+      border: 1px solid var(--cue-line);
+      border-radius: 10px;
+      padding: 0.6rem 0.55rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-step .n {
+      display: inline-flex;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--cue-navy);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .flow-step .t {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--cue-navy);
+      line-height: 1.25;
+    }
+
+    .flow-arrow {
+      align-self: center;
+      color: var(--cue-green);
+      font-weight: 800;
+      font-size: 1.1rem;
+      flex: 0 0 auto;
+    }
+
+    .edition-map {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .edition {
+      border-radius: var(--radius);
+      padding: 1rem 1.05rem;
+      border: 1px solid var(--cue-line);
+      background: white;
+    }
+
+    .edition.pro {
+      border-color: rgba(1,162,91,0.5);
+      background: linear-gradient(165deg, #F2FBF6, white 55%);
+    }
+
+    .edition .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--cue-slate);
+    }
+
+    .edition.pro .label { color: var(--cue-green-deep); }
+
+    .edition h3 { margin-top: 0.35rem; margin-bottom: 0.55rem; }
+
+    .edition ul {
+      margin: 0;
+      padding-left: 1.05rem;
+      color: var(--cue-slate);
+      font-size: 0.9rem;
+    }
+
+    .edition li { margin: 0.28rem 0; }
+
+    .spine {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.45rem;
+    }
+
+    .spine-cell {
+      background: white;
+      border: 1px solid var(--cue-line);
+      border-radius: 10px;
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+    }
+
+    .spine-cell .k {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cue-slate);
+      font-weight: 700;
+    }
+
+    .spine-cell .v {
+      margin-top: 0.35rem;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      color: var(--cue-navy);
+      font-size: 0.92rem;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem 1.2rem;
+      font-size: 0.9rem;
+    }
+
+    .toc a {
+      text-decoration: none;
+      color: var(--cue-navy);
+      font-weight: 600;
+      padding: 0.25rem 0;
+      border-bottom: 1px dotted var(--cue-line);
+    }
+
+    .toc a span {
+      color: var(--cue-slate);
+      font-weight: 500;
+      font-size: 0.82rem;
+    }
+
+    .audience {
+      display: inline-block;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .audience.stake { background: var(--cue-mist); color: var(--cue-navy); }
+    .audience.dev { background: var(--cue-navy); color: white; }
+
+    .footer {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--cue-line);
+      font-size: 0.82rem;
+      color: var(--cue-slate);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .two-col-list {
+      columns: 2;
+      column-gap: 1.5rem;
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--cue-slate);
+      font-size: 0.92rem;
+    }
+
+    .two-col-list li { break-inside: avoid; margin: 0.3rem 0; }
+
+    @media (max-width: 760px) {
+      .grid-2, .grid-3, .sys, .edition-map, .spine, .toc { grid-template-columns: 1fr; }
+      .flow-arrow { display: none; }
+      h1 { font-size: 2rem; }
+    }
+
+    @page {
+      size: Letter;
+      margin: 0.55in 0.55in 0.6in;
+    }
+
+    @media print {
+      body {
+        background: white;
+        font-size: 11.5pt;
+      }
+      .page { max-width: none; padding: 0; }
+      .section { break-inside: avoid; }
+      .cover { break-after: avoid; }
+      .diagram, .card, .edition, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+      h2 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="cover">
+      <div class="cover-top">
+        <img class="logo" src="assets/logo-lockup.png" alt="CueClose" />
+        <div class="meta">
+          <strong>Architecture Overview</strong>
+          Product documentation · Dual audience<br />
+          Horizon Arena Tour demo · Classic / Pro
+        </div>
+      </div>
+      <p class="tagline">The tour keeps moving. The books keep up.</p>
+      <p class="lede">
+        CueClose is a touring-finance coordination product for live production close:
+        ambient invoice cues, evidence-linked recommendations, explicit human approvals,
+        exact double-entry posting, reconciliation that explains variance, and an append-only audit trail.
+      </p>
+      <div class="pill-row">
+        <span class="pill navy">Stakeholder brief</span>
+        <span class="pill green">Engineer deep dive</span>
+        <span class="pill">Models recommend · humans post</span>
+        <span class="pill">Exact decimal money</span>
+        <span class="pill">Synthetic demo data</span>
+      </div>
+    </header>
+
+    <section class="section card">
+      <p class="eyebrow">Contents</p>
+      <div class="toc">
+        <a href="#exec">1. Executive summary <span>stakeholders</span></a>
+        <a href="#context">2. System context <span>diagram</span></a>
+        <a href="#flow">3. Request flow <span>approve → post</span></a>
+        <a href="#editions">4. Classic vs Pro <span>capability map</span></a>
+        <a href="#spine">5. Ledger spine <span>invariants</span></a>
+        <a href="#data">6. Data model <span>engineers</span></a>
+        <a href="#api">7. API surface <span>engineers</span></a>
+        <a href="#auth">8. Auth and session <span>engineers</span></a>
+        <a href="#gating">9. Edition gating and Pro desks <span>engineers</span></a>
+        <a href="#tradeoffs">10. Tradeoffs <span>both</span></a>
+      </div>
+    </section>
+
+    <section class="section" id="exec">
+      <h2><span class="audience stake">Stakeholder</span> Executive summary</h2>
+      <p>
+        CueClose helps a tour finance desk keep books current while shows move city to city.
+        Invoices arrive as ambient cues with source evidence. The product recommends an account and show.
+        A person with the right role approves. Only then does CueClose post a balanced journal.
+        Reconciliation never silently rewrites amounts; it explains variance against a legacy snapshot.
+      </p>
+      <div class="grid-3" style="margin-top:1rem;">
+        <div class="card">
+          <p class="eyebrow">Trust</p>
+          <h3 style="margin-top:0;">Authority is explicit</h3>
+          <p>Role, materiality, and confidence gates run on the server. Channel messages cannot grant approval power.</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Accuracy</p>
+          <h3 style="margin-top:0;">Money stays exact</h3>
+          <p>Amounts are decimal strings on the wire and exact decimal math in domain code. No binary float for money.</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Accountability</p>
+          <h3 style="margin-top:0;">Every action leaves a trail</h3>
+          <p>Reviews, approvals, posts, and variance explanations append audit events with actor, reason, and policy version.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p>One-line product promise</p>
+        <p class="sub">A model may recommend. It never posts. Humans decide under policy. The ledger stays balanced and explainable.</p>
+      </div>
+    </section>
+
+    <section class="section" id="context">
+      <h2><span class="audience stake">Stakeholder</span> System context</h2>
+      <p>
+        The shipped demo is a branded Next.js workspace with an embedded same-contract API.
+        A FastAPI modular monolith remains the architecture reference with exact-decimal domain tests.
+        Both share the same workflow shape: cue → review → approval → post → reconcile → audit.
+      </p>
+      <div class="diagram">
+        <div class="diagram-caption">System / context</div>
+        <div class="sys">
+          <div class="lane">
+            <h4>Web workspace</h4>
+            <div class="node navy">Splash + brand<span>CueClose lockup · Horizon Arena Tour</span></div>
+            <div class="node">Command<span>Tour metrics · persona switcher · edition banner</span></div>
+            <div class="node">Cue inbox<span>Evidence · recommendation · decisions</span></div>
+            <div class="node">Ledger · Reconciliation · Audit<span>Posted journals · variance explain · timeline</span></div>
+          </div>
+          <div class="lane">
+            <h4>Application + domain</h4>
+            <div class="node accent">HTTP adapters<span>Next.js <code>/api/v1/*</code> · FastAPI reference</span></div>
+            <div class="node">Workflow services<span>Review · approve · post · explain · reset</span></div>
+            <div class="node">Deterministic policy<span>Role · materiality · confidence · hold escalation</span></div>
+            <div class="node">Exact ledger domain<span>Balance check · idempotent post · Decimal money</span></div>
+            <div class="node">Seeded demo store<span>Process memory · swap-ready for Postgres later</span></div>
+          </div>
+        </div>
+      </div>
+      <p>
+        Persistence today is a seeded in-memory store so anyone can explore without real books or integrations.
+        Channels in the demo are simulated. Tour data is synthetic Horizon Arena Tour content.
+      </p>
+    </section>
+
+    <section class="section" id="flow">
+      <h2><span class="audience stake">Stakeholder</span> Request flow</h2>
+      <p>
+        Happy path for a material cue: evidence arrives with the cue, a recommendation is visible,
+        an authorized actor approves with a reason, then posts with an idempotency key.
+        Denied decisions return a policy code and leave the cue unchanged.
+      </p>
+      <div class="diagram">
+        <div class="diagram-caption">Approve and post path</div>
+        <div class="flow">
+          <div class="flow-step"><div class="n">1</div><div class="t">Ambient cue + evidence</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="n">2</div><div class="t">Model recommends</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="n">3</div><div class="t">Server authority check</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="n">4</div><div class="t">Record approval</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="n">5</div><div class="t">Post balanced journal</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="n">6</div><div class="t">Explain variance</div></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-top:0;">What stakeholders see</h3>
+          <ul class="two-col-list" style="columns:1;">
+            <li>Clear approve / hold / reject controls</li>
+            <li>Disabled buttons with plain-language reasons</li>
+            <li>Balanced journal after a successful post</li>
+            <li>Variance explained without changing books</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">What the server enforces</h3>
+          <ul class="two-col-list" style="columns:1;">
+            <li>Actor bound to signed-in viewer or guest cookie</li>
+            <li>Policy verdict before mutating cue state</li>
+            <li>Journal draft must balance in one currency</li>
+            <li>Idempotency key prevents double post</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="editions">
+      <h2><span class="audience stake">Stakeholder</span> Classic vs Pro</h2>
+      <p>
+        The workspace ships two editions so stakeholders can compare the core close path with the operations desk.
+        Toggle <strong>Edition</strong> in the app header. Classic keeps the narrative tight. Pro surfaces desk workload tools.
+      </p>
+      <div class="edition-map">
+        <div class="edition">
+          <div class="label">Classic</div>
+          <h3>Core close path</h3>
+          <ul>
+            <li>Cue inbox with evidence and recommendations</li>
+            <li>Role-gated approvals and posting</li>
+            <li>Ledger, reconciliation, audit timeline</li>
+            <li>Command metrics for open work and variances</li>
+            <li>Focused demo for the approve → post story</li>
+          </ul>
+        </div>
+        <div class="edition pro">
+          <div class="label">Pro</div>
+          <h3>Operations desk</h3>
+          <ul>
+            <li>Everything in Classic</li>
+            <li>Waiting-on-me queue (role-aware)</li>
+            <li>Show / venue filters in the inbox</li>
+            <li>Duplicate-invoice acknowledge gate</li>
+            <li>Extra near-duplicate cue in the seed set</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="spine">
+      <h2><span class="audience stake">Stakeholder</span> Ledger spine</h2>
+      <p>
+        The financial spine is narrow on purpose: validate drafts, post once, never edit posted lines in place,
+        and explain reconciliation differences instead of auto-correcting them.
+      </p>
+      <div class="diagram">
+        <div class="diagram-caption">Invariants at a glance</div>
+        <div class="spine">
+          <div class="spine-cell"><div class="k">Money</div><div class="v">Decimal</div></div>
+          <div class="spine-cell"><div class="k">Journal</div><div class="v">Balanced</div></div>
+          <div class="spine-cell"><div class="k">Post</div><div class="v">Idempotent</div></div>
+          <div class="spine-cell"><div class="k">Correct</div><div class="v">Reversal</div></div>
+          <div class="spine-cell"><div class="k">Variance</div><div class="v">Explain</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="data">
+      <h2><span class="audience dev">Engineer</span> Data model</h2>
+      <p>
+        Core entities live in the Python domain package and are mirrored in the Next.js demo store.
+        Amounts travel as decimal strings. Cue status is a closed set of workflow states.
+      </p>
+      <div class="card" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Role</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Tour / Show</strong></td>
+              <td>Operational scope</td>
+              <td>Horizon Arena Tour seed; shows carry venue, city, date, status.</td>
+            </tr>
+            <tr>
+              <td><strong>InvoiceCue</strong></td>
+              <td>Work item</td>
+              <td>Vendor, amount, evidence pack, optional recommendation, materiality threshold.</td>
+            </tr>
+            <tr>
+              <td><strong>Recommendation</strong></td>
+              <td>Advisory only</td>
+              <td>Account, show, confidence, rationale, evidence ids, policy notes. Never posts.</td>
+            </tr>
+            <tr>
+              <td><strong>ApprovalRecord</strong></td>
+              <td>Decision evidence</td>
+              <td>Actor, role, decision, reason, policy version, state version, timestamp.</td>
+            </tr>
+            <tr>
+              <td><strong>JournalEntry</strong></td>
+              <td>Ledger fact</td>
+              <td>Balanced lines, idempotency key, posted_by; immutable after post in product rules.</td>
+            </tr>
+            <tr>
+              <td><strong>ReconciliationItem</strong></td>
+              <td>Compare + explain</td>
+              <td>Ledger vs legacy amounts; explanation is human text, not an automatic rewrite.</td>
+            </tr>
+            <tr>
+              <td><strong>AuditEvent</strong></td>
+              <td>Append-only trail</td>
+              <td>Action, entity, summary, details blob for later investigation.</td>
+            </tr>
+            <tr>
+              <td><strong>DuplicateCandidate</strong></td>
+              <td>Pro heuristic</td>
+              <td>Near-match cues with match reasons; approval requires acknowledge flag.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Cue status machine</h3>
+      <p class="mono" style="color:var(--cue-navy); font-weight:600;">
+        new → in_review → awaiting_approval → approved → posted → reconciled
+      </p>
+      <p>
+        Alternate path: <code>held</code> when confidence or context is insufficient.
+        Held cues escalate to the tour controller for decision after context is attached.
+      </p>
+    </section>
+
+    <section class="section" id="api">
+      <h2><span class="audience dev">Engineer</span> API surface</h2>
+      <p>
+        Contract prefix: <code>/api/v1</code>. The Next.js catch-all route and FastAPI router expose the same workflow verbs.
+        Transport schemas keep money as strings.
+      </p>
+      <div class="card" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">GET</td><td class="mono">/health</td><td>Liveness and demo mode metadata</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/demo/dashboard</td><td>Tour metrics, shows, actors, waiting-on-me</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/demo/reset</td><td>Reseed process-memory store (controller)</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/cues</td><td>List ambient cues</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/cues/{id}</td><td>Cue detail (+ Pro duplicate candidates)</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/cues/{id}/review</td><td>Advance into review</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/cues/{id}/approvals</td><td>Approve / reject / hold under policy</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/cues/{id}/post</td><td>Post journal with idempotency key</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/ledger/journals</td><td>Posted journals</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/ledger/validate</td><td>Validate draft without posting</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/reconciliation</td><td>Variance list</td></tr>
+            <tr><td class="mono">POST</td><td class="mono">/reconciliation/{id}/explain</td><td>Attach human explanation</td></tr>
+            <tr><td class="mono">GET</td><td class="mono">/audit</td><td>Append-only event page</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Policy failures return HTTP 403 with a stable code such as <code>MATERIALITY</code>, <code>LOW-CONFIDENCE</code>,
+        <code>HOLD-ESCALATION</code>, or <code>E-01-ROLE</code>. Invalid state transitions return 409. Ledger invariant failures return 422.
+      </p>
+    </section>
+
+    <section class="section" id="auth">
+      <h2><span class="audience dev">Engineer</span> Auth and session</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-top:0;">Viewer binding</h3>
+          <p>
+            Private or Team publishes resolve a signed-in Cursor identity.
+            Public publishes fall back to an HttpOnly guest cookie (<code>cueclose_vid</code>).
+            Demo personas are bound server-side to that viewer. The browser never sends an actor id to authorize a decision.
+          </p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Default personas</h3>
+          <p>
+            Guests start as <strong>Jordan Blake</strong> (production manager).
+            Signed-in viewers can act as <strong>Maya Chen</strong> (tour controller) for material approvals and reset.
+            Role labels are product fiction for the Horizon Arena Tour demo.
+          </p>
+        </div>
+      </div>
+      <div class="callout">
+        <p>Authority boundary</p>
+        <p class="sub">Channel excerpts are evidence, not credentials. Only the server-side policy engine grants or denies write paths.</p>
+      </div>
+    </section>
+
+    <section class="section" id="gating">
+      <h2><span class="audience dev">Engineer</span> Edition gating and Pro desks</h2>
+      <h3>Edition cookie and header</h3>
+      <p>
+        Edition is selected in the header and persisted via <code>cueclose_edition</code>.
+        API handlers also honor <code>x-cueclose-edition</code>. Parsing treats legacy <code>baseline</code> as Classic; default is Pro.
+        Implementation: <code>web/src/lib/edition.ts</code>.
+      </p>
+      <h3>Waiting-on-me queue</h3>
+      <p>
+        <code>waitingOnMe(store, actor)</code> filters open cues by role. Tour controllers see material, held, low-confidence,
+        and awaiting-approval work. Production managers see only cues they can legally decide. Tour managers see held or unassigned show cues.
+        Command surfaces the queue; the inbox can filter with <code>?waiting=1</code>.
+      </p>
+      <h3>Show filters</h3>
+      <p>
+        Pro inbox adds a show/venue select that filters on <code>suggested_show_id</code>.
+        Classic hides the Pro-only near-duplicate seed cue (<code>cue_006</code>) so the core story stays clean.
+      </p>
+      <h3>Duplicate acknowledge gate</h3>
+      <p>
+        <code>findDuplicateCandidates</code> looks for same vendor, amount within 5%, received within 14 days,
+        plus optional similar invoice number and same suggested show. Match reasons are returned on cue detail in Pro.
+        Approvals require <code>acknowledge_duplicate: true</code> when candidates exist; otherwise the API rejects with a clear warning payload.
+        The UI keeps Approve disabled until the checkbox is checked.
+      </p>
+      <div class="card" style="margin-top:1rem;">
+        <h3 style="margin-top:0;">Policy constants (shared idea across runtimes)</h3>
+        <table>
+          <thead><tr><th>Gate</th><th>Rule</th></tr></thead>
+          <tbody>
+            <tr><td>Materiality</td><td>Amounts ≥ <code>2500.00</code> require tour controller</td></tr>
+            <tr><td>Confidence</td><td>Recommendation confidence &lt; <code>0.75</code> escalates</td></tr>
+            <tr><td>Posting roles</td><td>Tour controller and production manager (within autonomy)</td></tr>
+            <tr><td>Context-only</td><td>Tour manager, executive producer, auditor cannot approve</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="tradeoffs">
+      <h2>Tradeoffs</h2>
+      <div class="card" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Choice</th>
+              <th>Benefit</th>
+              <th>Cost / follow-on</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Modular monolith</strong></td>
+              <td>Clear transactions, one deploy story for the reference API</td>
+              <td>Later extraction only when measured need appears</td>
+            </tr>
+            <tr>
+              <td><strong>Seeded process memory</strong></td>
+              <td>Instant demo, deterministic tests, no database ops</td>
+              <td>Restart clears mutations unless Reset demo reseeds</td>
+            </tr>
+            <tr>
+              <td><strong>Embedded Next.js API</strong></td>
+              <td>One-process UI demo for stakeholders</td>
+              <td>Python service remains the exact-decimal test spine</td>
+            </tr>
+            <tr>
+              <td><strong>Explain-only reconciliation</strong></td>
+              <td>No silent book rewrites; audit-friendly</td>
+              <td>Operators must still resolve books elsewhere</td>
+            </tr>
+            <tr>
+              <td><strong>Heuristic duplicate gate</strong></td>
+              <td>Catches resent invoices before double post</td>
+              <td>Not identity resolution; false positives need acknowledge</td>
+            </tr>
+            <tr>
+              <td><strong>Edition toggle in-product</strong></td>
+              <td>Side-by-side Classic vs Pro storytelling</td>
+              <td>Feature flags are demo-scoped, not multi-tenant SKUs yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:1rem;">
+        Deeper RM-ODP viewpoints, ADRs, and Mermaid diagrams live alongside this overview in
+        <code>docs/architecture/</code>, <code>docs/decisions/</code>, and <code>docs/diagrams/</code>.
+        For a timed product presentation, use the Demo Walkthrough in <code>docs/guides/</code>.
+      </p>
+    </section>
+
+    <footer class="footer">
+      <div>CueClose · Architecture Overview · Product documentation</div>
+      <div>Brand tokens: Cue green #01A25B · Close navy #012F5D · Paper #F4F8F6</div>
+    </footer>
+  </div>
+</body>
+</html>

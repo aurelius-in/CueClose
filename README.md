@@ -96,6 +96,16 @@ Reset anytime with **Reset demo** in the header (tour controller only).
 
 Personas are bound server-side to the signed-in Cursor viewer or an HttpOnly guest cookie. The browser never sends an actor id to authorize a decision.
 
+## Product docs
+
+Dual-audience architecture and a timed demo script ship as HTML/Markdown with print-ready PDFs:
+
+| Doc | Links |
+|---|---|
+| Architecture Overview | [HTML](docs/architecture/overview.html) · [PDF](docs/architecture/CueClose-Architecture-Overview.pdf) |
+| Demo Walkthrough (Horizon Arena Tour) | [Markdown](docs/guides/demo-walkthrough.md) · [PDF](docs/guides/CueClose-Demo-Walkthrough.pdf) |
+| Docs index | [`docs/README.md`](docs/README.md) |
+
 ## Architecture
 
 ```text
@@ -105,11 +115,11 @@ api/        FastAPI modular monolith (architecture reference)
   application/  Cue review → approval → post → reconcile
   infrastructure/  Seeded in-memory store (swap-ready)
 brand/      Logo, mark, color tokens
-docs/       RM-ODP viewpoints, ADRs, workflow diagrams
+docs/       Product overview PDFs, RM-ODP viewpoints, ADRs, walkthrough
 scripts/    Local run helpers
 ```
 
-Readable diagrams:
+Readable diagrams and viewpoints:
 
 - [`docs/diagrams/architecture.md`](docs/diagrams/architecture.md)
 - [`docs/diagrams/workflow.md`](docs/diagrams/workflow.md)

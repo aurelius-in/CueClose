@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CueClose Demo Walkthrough</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cue-green: #01A25B;
+      --cue-green-deep: #018A4E;
+      --cue-navy: #012F5D;
+      --cue-mist: #E7F3EC;
+      --cue-paper: #F4F8F6;
+      --cue-ink: #0B1C2C;
+      --cue-slate: #4A5D73;
+      --cue-line: #C9D8CF;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--cue-ink);
+      background:
+        radial-gradient(1000px 480px at 5% -10%, rgba(1,162,91,0.12), transparent 55%),
+        radial-gradient(800px 420px at 100% 0%, rgba(1,47,93,0.08), transparent 50%),
+        var(--cue-paper);
+      font-family: "Manrope", system-ui, sans-serif;
+      line-height: 1.5;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page { max-width: 900px; margin: 0 auto; padding: 36px 28px 64px; }
+    h1, h2, h3 { font-family: "Syne", system-ui, sans-serif; color: var(--cue-navy); letter-spacing: -0.02em; line-height: 1.15; }
+    h1 { font-size: 2.35rem; margin: 0.2em 0 0.35em; font-weight: 800; }
+    h2 { font-size: 1.35rem; margin: 1.6rem 0 0.55rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--cue-mist); }
+    h3 { font-size: 1.05rem; margin: 1rem 0 0.4rem; }
+    p { margin: 0 0 0.75rem; color: var(--cue-slate); }
+    strong { color: var(--cue-navy); }
+    ul, ol { color: var(--cue-slate); margin: 0.3rem 0 0.9rem; padding-left: 1.2rem; }
+    li { margin: 0.28rem 0; }
+    code {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.84em;
+      background: var(--cue-mist);
+      color: var(--cue-navy);
+      padding: 0.1em 0.35em;
+      border-radius: 5px;
+    }
+    .eyebrow {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--cue-green); margin-bottom: 0.45rem;
+    }
+    .cover {
+      display: grid; gap: 1rem; padding-bottom: 1.4rem; margin-bottom: 1.2rem;
+      border-bottom: 1px solid var(--cue-line);
+    }
+    .cover-top { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+    .logo { height: 64px; width: auto; }
+    .meta { text-align: right; font-size: 0.85rem; color: var(--cue-slate); }
+    .meta strong { display: block; color: var(--cue-navy); }
+    .tagline { font-family: "Syne", sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--cue-navy); margin: 0; }
+    .card {
+      background: rgba(255,255,255,0.9); border: 1px solid var(--cue-line);
+      border-radius: 14px; padding: 1rem 1.1rem; margin: 0.8rem 0;
+      box-shadow: 0 12px 30px rgba(1,47,93,0.05); break-inside: avoid;
+    }
+    .block {
+      break-inside: avoid; margin: 1.2rem 0; padding: 1rem 1.1rem;
+      border: 1px solid var(--cue-line); border-radius: 14px; background: white;
+    }
+    .block-head {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
+      align-items: baseline; margin-bottom: 0.55rem;
+    }
+    .time {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; font-weight: 500;
+      color: var(--cue-green-deep); background: var(--cue-mist);
+      padding: 0.25rem 0.55rem; border-radius: 999px;
+    }
+    .label {
+      display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 0.18rem 0.45rem; border-radius: 6px; margin-right: 0.35rem;
+    }
+    .label.click { background: var(--cue-navy); color: white; }
+    .label.say { background: var(--cue-green); color: white; }
+    .label.point { background: var(--cue-mist); color: var(--cue-navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--cue-line); vertical-align: top; }
+    th {
+      font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--cue-slate); background: var(--cue-mist);
+    }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .pill {
+      font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 999px;
+      background: var(--cue-mist); color: var(--cue-navy);
+    }
+    .footer {
+      margin-top: 2rem; padding-top: 0.9rem; border-top: 1px solid var(--cue-line);
+      font-size: 0.8rem; color: var(--cue-slate); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    @media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+    @page { size: Letter; margin: 0.55in; }
+    @media print {
+      body { background: white; }
+      .page { padding: 0; max-width: none; }
+      .block, .card, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="cover">
+      <div class="cover-top">
+        <img class="logo" src="assets/logo-lockup.png" alt="CueClose" />
+        <div class="meta">
+          <strong>Demo Walkthrough Script</strong>
+          Horizon Arena Tour · Classic → Pro<br />
+          Runtime ~12–15 minutes
+        </div>
+      </div>
+      <p class="tagline">The tour keeps moving. The books keep up.</p>
+      <p>
+        Spoken and click guide for presenting CueClose to stakeholders and peer engineers.
+        Drive the live workspace at <code>http://127.0.0.1:3847</code>. Reset with <strong>Reset demo</strong> before you start.
+      </p>
+      <div class="pill-row">
+        <span class="pill">Product demo script</span>
+        <span class="pill">Timed beats</span>
+        <span class="pill">Classic then Pro</span>
+        <span class="pill">Synthetic tour data</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <p class="eyebrow">Before you start</p>
+      <table>
+        <thead><tr><th>Check</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>App running</td><td><code>cd web && npm run build && npm run start -- --port 3847</code> or <code>./scripts/run.sh</code></td></tr>
+          <tr><td>Edition</td><td>Set header <strong>Edition</strong> to <strong>Classic</strong> for the opening arc</td></tr>
+          <tr><td>Personas</td><td><strong>Maya Chen</strong> for material posts; <strong>Jordan Blake</strong> for the denial beat</td></tr>
+          <tr><td>Frame</td><td>Product demo of CueClose. Synthetic Horizon Arena Tour. Simulated channels.</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:0.85rem;"><strong>Opening line:</strong> “CueClose is touring-finance coordination for live production close. Cues arrive with evidence. The model recommends. Humans decide. The ledger stays exact.”</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Timed arc</p>
+      <table>
+        <thead><tr><th>Block</th><th>Clock</th><th>Goal</th></tr></thead>
+        <tbody>
+          <tr><td>0. Brand splash</td><td>0:00–0:45</td><td>Brand moment; set the promise</td></tr>
+          <tr><td>1. Command (Classic)</td><td>0:45–2:30</td><td>Tour context, metrics, persona</td></tr>
+          <tr><td>2. Material approve + post</td><td>2:30–5:30</td><td>Core trust story</td></tr>
+          <tr><td>3. Authority denial</td><td>5:30–7:00</td><td>Policy is real</td></tr>
+          <tr><td>4. Hold path</td><td>7:00–8:00</td><td>Low confidence stays visible</td></tr>
+          <tr><td>5. Ledger + recon + audit</td><td>8:00–10:00</td><td>Close the loop</td></tr>
+          <tr><td>6. Switch to Pro</td><td>10:00–13:30</td><td>Waiting-on-me, filters, duplicate gate</td></tr>
+          <tr><td>7. Close</td><td>13:30–15:00</td><td>Principles + Q&amp;A</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 0 · Brand splash</h2>
+        <span class="time">0:00–0:45</span>
+      </div>
+      <p><span class="label click">Click</span> Land on <code>/</code>. Let the splash breathe. Enter Command when ready.</p>
+      <p><span class="label say">Say</span> CueClose brand. Tagline: the tour keeps moving; the books keep up. Synthetic tour data; simulated channels.</p>
+      <p><span class="label point">Do not</span> Rush into the inbox. Let stakeholders register the product name.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 1 · Command, Classic</h2>
+        <span class="time">0:45–2:30</span>
+      </div>
+      <p><span class="label click">Click</span> Confirm <strong>Edition = Classic</strong>. Open <strong>Command</strong>.</p>
+      <p><span class="label point">Point</span> Horizon Arena Tour, policy version, metric tiles, show slate, acting role.</p>
+      <p><span class="label say">Say</span> Classic is the core close path. Recommendations are visible. Posting only after server-checked human approval. Personas are bound server-side.</p>
+      <p><strong>Engineer aside:</strong> Next.js demo API mirrors FastAPI under <code>/api/v1</code>. Money is exact decimal; wire amounts are strings.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 2 · Material approve and post</h2>
+        <span class="time">2:30–5:30</span>
+      </div>
+      <p><span class="label click">Click</span> <strong>Cue inbox</strong> → <strong>Northwind Rigging Co.</strong> (<code>cue_001</code>, ~$8,650). Act as <strong>Maya Chen</strong>.</p>
+      <p><span class="label point">Point</span> Evidence excerpts, recommendation confidence, policy notes, materiality.</p>
+      <p><span class="label say">Say</span> Amount is above materiality. Evidence travels with the cue. The model never posts alone.</p>
+      <ol>
+        <li>Approve with a short reason (example: “PO and call sheet match Chicago stand-by.”)</li>
+        <li>Post journal. Show balanced debit/credit totals.</li>
+      </ol>
+      <p><span class="label say">Say</span> Posting is idempotent. Posted lines are not edited in place; corrections use a reversing path in product rules.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 3 · Authority denial</h2>
+        <span class="time">5:30–7:00</span>
+      </div>
+      <p><span class="label click">Click</span> Switch to <strong>Jordan Blake</strong>. Attempt a material approval Jordan cannot make.</p>
+      <p><span class="label say">Say</span> Same UI, different authority. API returns a policy code such as <code>MATERIALITY</code>. Channel messages cannot grant authority. Cue status stays unchanged.</p>
+      <div class="two">
+        <div class="card" style="margin:0;box-shadow:none;">
+          <strong>Stakeholder line</strong>
+          <p style="margin:0.35rem 0 0;">Finance stays in control even when the desk is moving fast.</p>
+        </div>
+        <div class="card" style="margin:0;box-shadow:none;">
+          <strong>Engineer line</strong>
+          <p style="margin:0.35rem 0 0;">Deterministic policy lives with the domain, not only in the button layer.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 4 · Hold path</h2>
+        <span class="time">7:00–8:00</span>
+      </div>
+      <p><span class="label click">Click</span> Open <strong>Clearwave RF</strong> (<code>cue_004</code>) or another held / low-confidence cue.</p>
+      <p><span class="label say">Say</span> Low confidence holds for context instead of forcing a bad post. Held work escalates to the tour controller.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 5 · Ledger, reconciliation, audit</h2>
+        <span class="time">8:00–10:00</span>
+      </div>
+      <ol>
+        <li><strong>Ledger</strong> - show the Northwind journal you posted.</li>
+        <li><strong>Reconciliation</strong> - explain an unexplained variance with a short human note.</li>
+        <li><strong>Audit</strong> - scroll seed → review → approval → post → explain.</li>
+      </ol>
+      <p><span class="label say">Say</span> Reconciliation explains variance; it does not silently rewrite amounts. The audit trail is append-only.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 6 · Pro edition desk tools</h2>
+        <span class="time">10:00–13:30</span>
+      </div>
+      <p><span class="label click">Click</span> Header <strong>Edition → Pro</strong>. Note the Pro banner.</p>
+      <h3>6a · Waiting-on-me</h3>
+      <p>Command shows the role-aware queue. Open my queue / inbox <code>?waiting=1</code>. Maya’s list and Jordan’s list differ.</p>
+      <h3>6b · Show filters</h3>
+      <p>Inbox <strong>Show / venue</strong> select plus <strong>Waiting on me</strong> toggle for city owners.</p>
+      <h3>6c · Duplicate acknowledge gate</h3>
+      <p>Open the Stagecraft near-duplicate (Pro seed, often <code>cue_006</code>). Show match reasons. Approve stays disabled until the acknowledge checkbox is checked. Acknowledge is an explicit human step logged with the decision.</p>
+    </article>
+
+    <article class="block">
+      <div class="block-head">
+        <h2 style="margin:0;border:0;padding:0;">Block 7 · Close</h2>
+        <span class="time">13:30–15:00</span>
+      </div>
+      <ol>
+        <li>A model may recommend; it never posts.</li>
+        <li>Money is exact decimal, never binary float.</li>
+        <li>Authority is server-checked and audited.</li>
+        <li>Reconciliation explains; it does not auto-correct.</li>
+        <li>Classic tells the close story; Pro adds the operations desk.</li>
+      </ol>
+      <p><strong>Handouts:</strong> Architecture Overview PDF and this Demo Walkthrough PDF in <code>docs/architecture/</code> and <code>docs/guides/</code>.</p>
+    </article>
+
+    <section class="card">
+      <p class="eyebrow">Classic vs Pro talking card</p>
+      <table>
+        <thead><tr><th>Topic</th><th>Classic</th><th>Pro</th></tr></thead>
+        <tbody>
+          <tr><td>Story focus</td><td>Approve → post → explain</td><td>Desk workload on top of Classic</td></tr>
+          <tr><td>Command</td><td>Open / awaiting / posted / variances</td><td>Waiting-on-me first</td></tr>
+          <tr><td>Inbox</td><td>Core cue list</td><td>Show filter + waiting filter</td></tr>
+          <tr><td>Duplicates</td><td>Not emphasized</td><td>Acknowledge gate before approve</td></tr>
+          <tr><td>Best for</td><td>First-time stakeholders</td><td>Operators and peer engineers</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Fallback lines</p>
+      <table>
+        <thead><tr><th>If this happens</th><th>Say / do</th></tr></thead>
+        <tbody>
+          <tr><td>API error</td><td>Retry; confirm Node on port 3847</td></tr>
+          <tr><td>Wrong persona for material cue</td><td>Switch to Maya; name the MATERIALITY rule</td></tr>
+          <tr><td>Already posted</td><td>Reset demo as Maya; restart Block 2</td></tr>
+          <tr><td>Real money question</td><td>Demo channels are simulated; no real payments leave this workspace</td></tr>
+          <tr><td>Database question</td><td>Seeded process memory today; store interface is swap-ready for Postgres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Guardrails (say at least once)</p>
+      <ul>
+        <li>Models recommend; they do not post.</li>
+        <li>Money is exact decimal, never binary float.</li>
+        <li>Channels in this demo are simulated.</li>
+        <li>All tour data is synthetic Horizon Arena Tour content.</li>
+        <li>Personas are product fiction for the demo narrative.</li>
+      </ul>
+    </section>
+
+    <footer class="footer">
+      <div>CueClose · Demo Walkthrough · Product documentation</div>
+      <div>Companion: docs/architecture/CueClose-Architecture-Overview.pdf</div>
+    </footer>
+  </div>
+</body>
+</html>
